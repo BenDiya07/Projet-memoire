@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Gestion des Cours Universitaires</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>🎓 Université</h1>
+            <p>Gestion des Cours - Département</p>
+        </div>
+
+        <!-- Onglets de navigation -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" data-tab="login">Connexion</button>
+            <button class="tab-btn" data-tab="register">Inscription</button>
+        </div>
+
+        <!-- Formulaire de connexion -->
+        <form id="loginForm" class="form-container active">
+            <div class="form-group">
+                <label for="email">Email :</label>
+                <input type="email" id="email" name="email" required placeholder="votre.email@universite.fr">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mot de passe :</label>
+                <input type="password" id="password" name="password" required placeholder="Votre mot de passe">
+            </div>
+
+            <div class="role-selector">
+                <label>Type de compte :</label>
+                <div class="role-options">
+                    <div class="role-option">
+                        <input type="radio" id="student" name="role" value="student" checked>
+                        <label for="student">Étudiant</label>
+                    </div>
+                    <div class="role-option">
+                        <input type="radio" id="professor" name="role" value="professor">
+                        <label for="professor">Professeur</label>
+                    </div>
+                    <div class="role-option">
+                        <input type="radio" id="admin" name="role" value="admin">
+                        <label for="admin">Administrateur</label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="login-btn">Se connecter</button>
+        </form>
+
+        <!-- Formulaire d'inscription -->
+        <form id="registerForm" class="form-container">
+            <div class="form-group">
+                <label for="reg-firstName">Prénom :</label>
+                <input type="text" id="reg-firstName" name="firstName" required placeholder="Votre prénom">
+            </div>
+
+            <div class="form-group">
+                <label for="reg-lastName">Nom :</label>
+                <input type="text" id="reg-lastName" name="lastName" required placeholder="Votre nom">
+            </div>
+
+            <div class="form-group">
+                <label for="reg-email">Email :</label>
+                <input type="email" id="reg-email" name="email" required placeholder="votre.email@universite.fr">
+            </div>
+
+            <div class="form-group">
+                <label for="reg-password">Mot de passe :</label>
+                <input type="password" id="reg-password" name="password" required placeholder="Minimum 6 caractères">
+            </div>
+
+            <div class="form-group">
+                <label for="reg-confirmPassword">Confirmer le mot de passe :</label>
+                <input type="password" id="reg-confirmPassword" name="confirmPassword" required placeholder="Répétez votre mot de passe">
+            </div>
+
+            <div class="form-group">
+                <label for="reg-studentId">Numéro étudiant :</label>
+                <input type="text" id="reg-studentId" name="studentId" placeholder="Ex: 2024001 (optionnel)">
+            </div>
+
+            <div class="role-selector">
+                <label>Type de compte :</label>
+                <div class="role-options">
+                    <div class="role-option">
+                        <input type="radio" id="reg-student" name="reg-role" value="student" checked>
+                        <label for="reg-student">Étudiant</label>
+                    </div>
+                    <div class="role-option">
+                        <input type="radio" id="reg-professor" name="reg-role" value="professor">
+                        <label for="reg-professor">Professeur</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="reg-terms" name="terms" required>
+                    <span class="checkmark"></span>
+                    J'accepte les <a href="#" onclick="alert('Conditions d\'utilisation à implémenter')">conditions d'utilisation</a>
+                </label>
+            </div>
+
+            <button type="submit" class="login-btn">S'inscrire</button>
+        </form>
+
+        <div class="forgot-password">
+            <a href="#" onclick="alert('Fonctionnalité à implémenter')">Mot de passe oublié ?</a>
+        </div>
+
+        <div class="demo-accounts">
+            <h3>🔑 Comptes de démonstration :</h3>
+            <p><strong>Admin:</strong> admin@univ.fr / admin123</p>
+            <p><strong>Professeur:</strong> prof@univ.fr / prof123</p>
+            <p><strong>Étudiant:</strong> etudiant@univ.fr / etudiant123</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

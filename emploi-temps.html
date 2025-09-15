@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon emploi du temps - Étudiant</title>
+    <link rel="stylesheet" href="dashboard-styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>🎓 Université</h1>
+        </div>
+        <div class="nav-menu">
+            <a href="emploi-temps.html" class="nav-link active">Mon emploi du temps</a>
+        </div>
+        <div class="nav-user">
+            <span class="user-info">Étudiant</span>
+            <button class="logout-btn" onclick="logout()">Déconnexion</button>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="main-content">
+        <div class="page-header">
+            <h2>📅 Mon emploi du temps</h2>
+            <p>Consultez votre planning de cours et vos horaires</p>
+        </div>
+
+        <!-- Contrôles de vue -->
+        <div class="view-controls">
+            <div class="view-selector">
+                <button class="view-btn active" data-view="weekly" onclick="switchView('weekly')">
+                    📅 Vue hebdomadaire
+                </button>
+                <button class="view-btn" data-view="daily" onclick="switchView('daily')">
+                    📋 Vue journalière
+                </button>
+                <button class="view-btn" data-view="room" onclick="switchView('room')">
+                    🏢 Vue par salle
+                </button>
+                <button class="view-btn" data-view="professor" onclick="switchView('professor')">
+                    👨‍🏫 Vue par professeur
+                </button>
+            </div>
+            <div class="date-navigation">
+                <button class="nav-btn" onclick="previousPeriod()">‹</button>
+                <span id="currentPeriod">Semaine du 15 Janvier 2024</span>
+                <button class="nav-btn" onclick="nextPeriod()">›</button>
+                <button class="nav-btn today" onclick="goToToday()">Aujourd'hui</button>
+            </div>
+        </div>
+
+        <!-- Filtres -->
+        <div class="schedule-filters">
+            <div class="filter-group">
+                <label>Professeur :</label>
+                <select id="professorFilter">
+                    <option value="">Tous les professeurs</option>
+                    <option value="prof1">Dr. Martin</option>
+                    <option value="prof2">Dr. Dubois</option>
+                    <option value="prof3">Dr. Leroy</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Salle :</label>
+                <select id="roomFilter">
+                    <option value="">Toutes les salles</option>
+                    <option value="A101">Salle A101</option>
+                    <option value="B205">Salle B205</option>
+                    <option value="C301">Salle C301</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Matière :</label>
+                <select id="subjectFilter">
+                    <option value="">Toutes les matières</option>
+                    <option value="math">Mathématiques</option>
+                    <option value="physics">Physique</option>
+                    <option value="computer">Informatique</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="applyFilters()">Appliquer</button>
+        </div>
+
+        <!-- Vue hebdomadaire -->
+        <div id="weeklyView" class="schedule-view active">
+            <div class="schedule-grid">
+                <div class="time-column">
+                    <div class="time-header">Heure</div>
+                    <div class="time-slots">
+                        <div class="time-slot">08:00</div>
+                        <div class="time-slot">08:30</div>
+                        <div class="time-slot">09:00</div>
+                        <div class="time-slot">09:30</div>
+                        <div class="time-slot">10:00</div>
+                        <div class="time-slot">10:30</div>
+                        <div class="time-slot">11:00</div>
+                        <div class="time-slot">11:30</div>
+                        <div class="time-slot">12:00</div>
+                        <div class="time-slot">12:30</div>
+                        <div class="time-slot">13:00</div>
+                        <div class="time-slot">13:30</div>
+                        <div class="time-slot">14:00</div>
+                        <div class="time-slot">14:30</div>
+                        <div class="time-slot">15:00</div>
+                        <div class="time-slot">15:30</div>
+                        <div class="time-slot">16:00</div>
+                        <div class="time-slot">16:30</div>
+                        <div class="time-slot">17:00</div>
+                        <div class="time-slot">17:30</div>
+                        <div class="time-slot">18:00</div>
+                    </div>
+                </div>
+                
+                <div class="day-column">
+                    <div class="day-header">Lundi</div>
+                    <div class="day-slots">
+                        <div class="course-slot" data-course="math" style="grid-row: 3/7;">
+                            <div class="course-title">Mathématiques</div>
+                            <div class="course-details">Dr. Martin - A101</div>
+                            <div class="course-time">09:00-11:00</div>
+                        </div>
+                        <div class="course-slot" data-course="physics" style="grid-row: 15/18;">
+                            <div class="course-title">Physique</div>
+                            <div class="course-details">Dr. Dubois - B205</div>
+                            <div class="course-time">14:00-15:30</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="day-column">
+                    <div class="day-header">Mardi</div>
+                    <div class="day-slots">
+                        <div class="course-slot" data-course="computer" style="grid-row: 7/11;">
+                            <div class="course-title">Informatique</div>
+                            <div class="course-details">Dr. Leroy - C301</div>
+                            <div class="course-time">10:30-12:30</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="day-column">
+                    <div class="day-header">Mercredi</div>
+                    <div class="day-slots">
+                        <div class="course-slot conflict" data-course="math" style="grid-row: 3/7;">
+                            <div class="course-title">Mathématiques</div>
+                            <div class="course-details">Dr. Martin - A101</div>
+                            <div class="course-time">09:00-11:00</div>
+                            <div class="conflict-indicator">⚠️ Conflit</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="day-column">
+                    <div class="day-header">Jeudi</div>
+                    <div class="day-slots">
+                        <div class="course-slot" data-course="physics" style="grid-row: 11/15;">
+                            <div class="course-title">Physique</div>
+                            <div class="course-details">Dr. Dubois - B205</div>
+                            <div class="course-time">12:30-14:30</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="day-column">
+                    <div class="day-header">Vendredi</div>
+                    <div class="day-slots">
+                        <div class="course-slot" data-course="computer" style="grid-row: 5/9;">
+                            <div class="course-title">Informatique</div>
+                            <div class="course-details">Dr. Leroy - C301</div>
+                            <div class="course-time">09:30-11:30</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vue journalière -->
+        <div id="dailyView" class="schedule-view">
+            <div class="daily-schedule">
+                <div class="daily-header">
+                    <h3 id="dailyDate">Lundi 15 Janvier 2024</h3>
+                    <div class="daily-stats">
+                        <span class="stat">3 cours</span>
+                        <span class="stat">6h30 de cours</span>
+                        <span class="stat">2 salles utilisées</span>
+                    </div>
+                </div>
+                <div class="daily-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-time">09:00 - 11:00</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Mathématiques</div>
+                            <div class="timeline-details">Dr. Martin - Salle A101 - 25 étudiants</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-time">11:30 - 12:30</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Pause</div>
+                            <div class="timeline-details">Salle A101 disponible</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-time">14:00 - 15:30</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Physique</div>
+                            <div class="timeline-details">Dr. Dubois - Salle B205 - 20 étudiants</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vue par salle -->
+        <div id="roomView" class="schedule-view">
+            <div class="room-grid">
+                <div class="room-card">
+                    <div class="room-header">
+                        <h4>🏢 Salle A101</h4>
+                        <span class="room-status available">Disponible</span>
+                    </div>
+                    <div class="room-schedule">
+                        <div class="room-slot occupied">
+                            <span class="time">09:00-11:00</span>
+                            <span class="course">Mathématiques - Dr. Martin</span>
+                        </div>
+                        <div class="room-slot free">
+                            <span class="time">11:00-14:00</span>
+                            <span class="course">Libre</span>
+                        </div>
+                        <div class="room-slot occupied">
+                            <span class="time">14:00-16:00</span>
+                            <span class="course">Chimie - Dr. Bernard</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="room-card">
+                    <div class="room-header">
+                        <h4>🏢 Salle B205</h4>
+                        <span class="room-status occupied">Occupée</span>
+                    </div>
+                    <div class="room-schedule">
+                        <div class="room-slot free">
+                            <span class="time">08:00-14:00</span>
+                            <span class="course">Libre</span>
+                        </div>
+                        <div class="room-slot occupied">
+                            <span class="time">14:00-15:30</span>
+                            <span class="course">Physique - Dr. Dubois</span>
+                        </div>
+                        <div class="room-slot free">
+                            <span class="time">15:30-18:00</span>
+                            <span class="course">Libre</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="room-card">
+                    <div class="room-header">
+                        <h4>🏢 Salle C301</h4>
+                        <span class="room-status conflict">Conflit</span>
+                    </div>
+                    <div class="room-schedule">
+                        <div class="room-slot conflict">
+                            <span class="time">10:30-12:30</span>
+                            <span class="course">Informatique - Dr. Leroy</span>
+                        </div>
+                        <div class="room-slot conflict">
+                            <span class="time">10:30-12:30</span>
+                            <span class="course">⚠️ Conflit détecté</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vue par professeur -->
+        <div id="professorView" class="schedule-view">
+            <div class="professor-grid">
+                <div class="professor-card">
+                    <div class="professor-header">
+                        <h4>👨‍🏫 Dr. Martin</h4>
+                        <span class="professor-status active">Actif</span>
+                    </div>
+                    <div class="professor-schedule">
+                        <div class="prof-slot">
+                            <span class="day">Lundi</span>
+                            <span class="time">09:00-11:00</span>
+                            <span class="course">Mathématiques - A101</span>
+                        </div>
+                        <div class="prof-slot">
+                            <span class="day">Mercredi</span>
+                            <span class="time">09:00-11:00</span>
+                            <span class="course">Mathématiques - A101</span>
+                        </div>
+                        <div class="prof-slot">
+                            <span class="day">Vendredi</span>
+                            <span class="time">14:00-16:00</span>
+                            <span class="course">Statistiques - A101</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="professor-card">
+                    <div class="professor-header">
+                        <h4>👨‍🏫 Dr. Dubois</h4>
+                        <span class="professor-status active">Actif</span>
+                    </div>
+                    <div class="professor-schedule">
+                        <div class="prof-slot">
+                            <span class="day">Lundi</span>
+                            <span class="time">14:00-15:30</span>
+                            <span class="course">Physique - B205</span>
+                        </div>
+                        <div class="prof-slot">
+                            <span class="day">Jeudi</span>
+                            <span class="time">12:30-14:30</span>
+                            <span class="course">Physique - B205</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="professor-card">
+                    <div class="professor-header">
+                        <h4>👨‍🏫 Dr. Leroy</h4>
+                        <span class="professor-status conflict">Conflit</span>
+                    </div>
+                    <div class="professor-schedule">
+                        <div class="prof-slot">
+                            <span class="day">Mardi</span>
+                            <span class="time">10:30-12:30</span>
+                            <span class="course">Informatique - C301</span>
+                        </div>
+                        <div class="prof-slot conflict">
+                            <span class="day">Mercredi</span>
+                            <span class="time">10:30-12:30</span>
+                            <span class="course">⚠️ Conflit de salle</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions rapides -->
+        <div class="schedule-actions">
+            <button class="btn-primary" onclick="printSchedule()">
+                <span class="btn-icon">🖨️</span>
+                Imprimer mon emploi du temps
+            </button>
+            <button class="btn-secondary" onclick="exportSchedule()">
+                <span class="btn-icon">📥</span>
+                Télécharger en PDF
+            </button>
+            <button class="btn-secondary" onclick="shareSchedule()">
+                <span class="btn-icon">📤</span>
+                Partager mon planning
+            </button>
+        </div>
+    </main>
+
+    <script src="emploi-temps-script.js"></script>
+</body>
+</html>

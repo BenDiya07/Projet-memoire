@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suggestion de cours - Professeur</title>
+    <link rel="stylesheet" href="dashboard-styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>🎓 Université</h1>
+        </div>
+        <div class="nav-menu">
+            <a href="gestion.html" class="nav-link">Gestion</a>
+            <a href="suggestion-cours.html" class="nav-link active">Suggestion de cours</a>
+        </div>
+        <div class="nav-user">
+            <span class="user-info">Professeur</span>
+            <button class="logout-btn" onclick="logout()">Déconnexion</button>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="main-content">
+        <div class="page-header">
+            <h2>💡 Suggestion de cours</h2>
+            <p>Proposez l'enregistrement de nouveaux cours pour votre planning</p>
+        </div>
+
+        <!-- Formulaire de suggestion -->
+        <div class="suggestion-container">
+            <div class="suggestion-form">
+                <div class="form-header">
+                    <h3>📝 Nouvelle suggestion de cours</h3>
+                    <p>Remplissez ce formulaire pour proposer l'ajout d'un nouveau cours</p>
+                </div>
+
+                <form id="suggestionForm">
+                    <!-- Informations du cours -->
+                    <div class="form-section">
+                        <h4>📚 Informations du cours</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="courseName">Nom du cours :</label>
+                                <input type="text" id="courseName" name="courseName" required placeholder="Ex: Mathématiques Avancées">
+                            </div>
+                            <div class="form-group">
+                                <label for="courseCode">Code du cours :</label>
+                                <input type="text" id="courseCode" name="courseCode" required placeholder="Ex: MATH-301">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="courseDescription">Description du cours :</label>
+                            <textarea id="courseDescription" name="courseDescription" rows="3" placeholder="Décrivez le contenu et les objectifs du cours..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Planning proposé -->
+                    <div class="form-section">
+                        <h4>📅 Planning proposé</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="preferredDay">Jour préféré :</label>
+                                <select id="preferredDay" name="preferredDay" required>
+                                    <option value="">Sélectionner un jour</option>
+                                    <option value="lundi">Lundi</option>
+                                    <option value="mardi">Mardi</option>
+                                    <option value="mercredi">Mercredi</option>
+                                    <option value="jeudi">Jeudi</option>
+                                    <option value="vendredi">Vendredi</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="preferredTime">Heure préférée :</label>
+                                <input type="time" id="preferredTime" name="preferredTime" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="duration">Durée (heures) :</label>
+                                <select id="duration" name="duration" required>
+                                    <option value="">Sélectionner la durée</option>
+                                    <option value="1">1 heure</option>
+                                    <option value="1.5">1h30</option>
+                                    <option value="2">2 heures</option>
+                                    <option value="2.5">2h30</option>
+                                    <option value="3">3 heures</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="frequency">Fréquence :</label>
+                                <select id="frequency" name="frequency" required>
+                                    <option value="">Sélectionner la fréquence</option>
+                                    <option value="weekly">Hebdomadaire</option>
+                                    <option value="biweekly">Bi-hebdomadaire</option>
+                                    <option value="monthly">Mensuel</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Préférences de salle -->
+                    <div class="form-section">
+                        <h4>🏢 Préférences de salle</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="roomType">Type de salle :</label>
+                                <select id="roomType" name="roomType" required>
+                                    <option value="">Sélectionner le type</option>
+                                    <option value="amphitheater">Amphithéâtre</option>
+                                    <option value="classroom">Salle de classe</option>
+                                    <option value="laboratory">Laboratoire</option>
+                                    <option value="computer_room">Salle informatique</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="capacity">Capacité souhaitée :</label>
+                                <input type="number" id="capacity" name="capacity" min="10" max="200" placeholder="Ex: 30">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="equipment">Équipements nécessaires :</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="equipment" value="projector">
+                                    <span class="checkmark"></span>
+                                    Projecteur
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="equipment" value="computer">
+                                    <span class="checkmark"></span>
+                                    Ordinateur
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="equipment" value="whiteboard">
+                                    <span class="checkmark"></span>
+                                    Tableau blanc
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="equipment" value="microphone">
+                                    <span class="checkmark"></span>
+                                    Microphone
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="equipment" value="internet">
+                                    <span class="checkmark"></span>
+                                    Connexion Internet
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Justification -->
+                    <div class="form-section">
+                        <h4>💭 Justification</h4>
+                        <div class="form-group">
+                            <label for="justification">Pourquoi ce cours est-il nécessaire ?</label>
+                            <textarea id="justification" name="justification" rows="4" required placeholder="Expliquez l'importance de ce cours, son impact sur les étudiants, et pourquoi il devrait être ajouté au planning..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="targetAudience">Public cible :</label>
+                            <input type="text" id="targetAudience" name="targetAudience" placeholder="Ex: Étudiants de 2ème année en Informatique">
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="resetForm()">Effacer</button>
+                        <button type="button" class="btn-secondary" onclick="saveDraft()">Sauvegarder brouillon</button>
+                        <button type="submit" class="btn-primary">Envoyer la suggestion</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Aperçu de la suggestion -->
+            <div class="suggestion-preview">
+                <h3>👁️ Aperçu de votre suggestion</h3>
+                <div class="preview-content" id="previewContent">
+                    <p class="preview-placeholder">Remplissez le formulaire pour voir l'aperçu...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historique des suggestions -->
+        <div class="suggestions-history">
+            <div class="history-header">
+                <h3>📋 Mes suggestions précédentes</h3>
+                <button class="btn-small" onclick="refreshHistory()">🔄 Actualiser</button>
+            </div>
+            <div class="history-content">
+                <div class="suggestion-item">
+                    <div class="suggestion-info">
+                        <h4>Mathématiques Avancées</h4>
+                        <p><strong>Code:</strong> MATH-301 | <strong>Statut:</strong> <span class="status pending">En attente</span></p>
+                        <p><strong>Date:</strong> 15 Janvier 2024</p>
+                    </div>
+                    <div class="suggestion-actions">
+                        <button class="btn-icon-small" onclick="viewSuggestion(1)" title="Voir">👁️</button>
+                        <button class="btn-icon-small" onclick="editSuggestion(1)" title="Modifier">✏️</button>
+                    </div>
+                </div>
+                <div class="suggestion-item">
+                    <div class="suggestion-info">
+                        <h4>Physique Quantique</h4>
+                        <p><strong>Code:</strong> PHYS-401 | <strong>Statut:</strong> <span class="status approved">Approuvé</span></p>
+                        <p><strong>Date:</strong> 10 Janvier 2024</p>
+                    </div>
+                    <div class="suggestion-actions">
+                        <button class="btn-icon-small" onclick="viewSuggestion(2)" title="Voir">👁️</button>
+                        <button class="btn-icon-small" onclick="editSuggestion(2)" title="Modifier">✏️</button>
+                    </div>
+                </div>
+                <div class="suggestion-item">
+                    <div class="suggestion-info">
+                        <h4>Algorithmes Avancés</h4>
+                        <p><strong>Code:</strong> INFO-302 | <strong>Statut:</strong> <span class="status rejected">Rejeté</span></p>
+                        <p><strong>Date:</strong> 5 Janvier 2024</p>
+                    </div>
+                    <div class="suggestion-actions">
+                        <button class="btn-icon-small" onclick="viewSuggestion(3)" title="Voir">👁️</button>
+                        <button class="btn-icon-small" onclick="editSuggestion(3)" title="Modifier">✏️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="suggestion-cours-script.js"></script>
+</body>
+</html>

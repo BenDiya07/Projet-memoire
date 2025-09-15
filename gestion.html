@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion - Gestion des Cours Universitaires</title>
+    <link rel="stylesheet" href="dashboard-styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>🎓 Université</h1>
+        </div>
+        <div class="nav-menu">
+            <a href="dashboard.html" class="nav-link">Dashboard</a>
+            <a href="gestion.html" class="nav-link active">Gestion</a>
+            <a href="suggestion-cours.html" class="nav-link">Suggestion de cours</a>
+            <a href="emploi-temps.html" class="nav-link">Emploi du temps</a>
+        </div>
+        <div class="nav-user">
+            <span class="user-info">Professeur</span>
+            <button class="logout-btn" onclick="logout()">Déconnexion</button>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="main-content">
+        <div class="page-header">
+            <h2>Gestion des cours et plannings</h2>
+            <p>Créer, modifier et organiser vos cours et emplois du temps</p>
+        </div>
+
+        <!-- Actions principales -->
+        <div class="action-bar">
+            <button class="btn-primary" onclick="openModal('addCourseModal')">
+                <span class="btn-icon">➕</span>
+                Ajouter un cours
+            </button>
+            <button class="btn-secondary" onclick="window.location.href='suggestion-cours.html'">
+                <span class="btn-icon">💡</span>
+                Suggérer un cours
+            </button>
+            <button class="btn-secondary" onclick="openModal('addProfessorModal')">
+                <span class="btn-icon">👨‍🏫</span>
+                Ajouter un professeur
+            </button>
+            <button class="btn-secondary" onclick="openModal('addRoomModal')">
+                <span class="btn-icon">🏢</span>
+                Ajouter une salle
+            </button>
+            <button class="btn-warning" onclick="checkConflicts()">
+                <span class="btn-icon">⚠️</span>
+                Vérifier les conflits
+            </button>
+        </div>
+
+        <!-- Filtres et recherche -->
+        <div class="filters-section">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Rechercher un cours, professeur ou salle...">
+                <button class="search-btn">🔍</button>
+            </div>
+            <div class="filters">
+                <select id="professorFilter">
+                    <option value="">Tous les professeurs</option>
+                    <option value="prof1">Dr. Martin</option>
+                    <option value="prof2">Dr. Dubois</option>
+                    <option value="prof3">Dr. Leroy</option>
+                </select>
+                <select id="roomFilter">
+                    <option value="">Toutes les salles</option>
+                    <option value="A101">Salle A101</option>
+                    <option value="B205">Salle B205</option>
+                    <option value="C301">Salle C301</option>
+                </select>
+                <select id="dayFilter">
+                    <option value="">Tous les jours</option>
+                    <option value="lundi">Lundi</option>
+                    <option value="mardi">Mardi</option>
+                    <option value="mercredi">Mercredi</option>
+                    <option value="jeudi">Jeudi</option>
+                    <option value="vendredi">Vendredi</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tableau des cours -->
+        <div class="table-container">
+            <div class="table-header">
+                <h3>📚 Liste des cours</h3>
+                <div class="table-actions">
+                    <button class="btn-small" onclick="exportData()">📥 Exporter</button>
+                    <button class="btn-small" onclick="refreshData()">🔄 Actualiser</button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Matière</th>
+                            <th>Professeur</th>
+                            <th>Salle</th>
+                            <th>Jour</th>
+                            <th>Heure</th>
+                            <th>Durée</th>
+                            <th>Étudiants</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="coursesTableBody">
+                        <tr>
+                            <td>001</td>
+                            <td>Mathématiques</td>
+                            <td>Dr. Martin</td>
+                            <td>A101</td>
+                            <td>Lundi</td>
+                            <td>09:00</td>
+                            <td>2h</td>
+                            <td>25</td>
+                            <td><span class="status active">Actif</span></td>
+                            <td>
+                                <button class="btn-icon-small" onclick="editCourse(1)" title="Modifier">✏️</button>
+                                <button class="btn-icon-small" onclick="deleteCourse(1)" title="Supprimer">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>002</td>
+                            <td>Physique</td>
+                            <td>Dr. Dubois</td>
+                            <td>B205</td>
+                            <td>Mardi</td>
+                            <td>14:00</td>
+                            <td>1h30</td>
+                            <td>20</td>
+                            <td><span class="status active">Actif</span></td>
+                            <td>
+                                <button class="btn-icon-small" onclick="editCourse(2)" title="Modifier">✏️</button>
+                                <button class="btn-icon-small" onclick="deleteCourse(2)" title="Supprimer">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>003</td>
+                            <td>Informatique</td>
+                            <td>Dr. Leroy</td>
+                            <td>C301</td>
+                            <td>Mercredi</td>
+                            <td>10:30</td>
+                            <td>2h</td>
+                            <td>30</td>
+                            <td><span class="status conflict">Conflit</span></td>
+                            <td>
+                                <button class="btn-icon-small" onclick="editCourse(3)" title="Modifier">✏️</button>
+                                <button class="btn-icon-small" onclick="deleteCourse(3)" title="Supprimer">🗑️</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Statistiques rapides -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📚</div>
+                <div class="stat-content">
+                    <div class="stat-number">127</div>
+                    <div class="stat-label">Cours total</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👨‍🏫</div>
+                <div class="stat-content">
+                    <div class="stat-number">15</div>
+                    <div class="stat-label">Professeurs</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🏢</div>
+                <div class="stat-content">
+                    <div class="stat-number">25</div>
+                    <div class="stat-label">Salles</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-content">
+                    <div class="stat-number">450</div>
+                    <div class="stat-label">Étudiants</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Modal Ajouter un cours -->
+    <div id="addCourseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➕ Ajouter un nouveau cours</h3>
+                <button class="close-btn" onclick="closeModal('addCourseModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="addCourseForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="courseName">Nom du cours :</label>
+                            <input type="text" id="courseName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="courseCode">Code du cours :</label>
+                            <input type="text" id="courseCode" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="courseProfessor">Professeur :</label>
+                            <select id="courseProfessor" required>
+                                <option value="">Sélectionner un professeur</option>
+                                <option value="prof1">Dr. Martin</option>
+                                <option value="prof2">Dr. Dubois</option>
+                                <option value="prof3">Dr. Leroy</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="courseRoom">Salle :</label>
+                            <select id="courseRoom" required>
+                                <option value="">Sélectionner une salle</option>
+                                <option value="A101">Salle A101</option>
+                                <option value="B205">Salle B205</option>
+                                <option value="C301">Salle C301</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="courseDay">Jour :</label>
+                            <select id="courseDay" required>
+                                <option value="">Sélectionner un jour</option>
+                                <option value="lundi">Lundi</option>
+                                <option value="mardi">Mardi</option>
+                                <option value="mercredi">Mercredi</option>
+                                <option value="jeudi">Jeudi</option>
+                                <option value="vendredi">Vendredi</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="courseTime">Heure :</label>
+                            <input type="time" id="courseTime" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="courseDuration">Durée (heures) :</label>
+                            <input type="number" id="courseDuration" min="0.5" max="4" step="0.5" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="courseStudents">Nombre d'étudiants :</label>
+                            <input type="number" id="courseStudents" min="1" max="50" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('addCourseModal')">Annuler</button>
+                <button class="btn-primary" onclick="addCourse()">Ajouter le cours</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="gestion-script.js"></script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Gestion des Cours Universitaires</title>
+    <link rel="stylesheet" href="dashboard-styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>🎓 Université</h1>
+        </div>
+        <div class="nav-menu">
+            <a href="dashboard.html" class="nav-link active">Dashboard</a>
+            <a href="gestion.html" class="nav-link">Gestion</a>
+            <a href="emploi-temps.html" class="nav-link">Emploi du temps</a>
+        </div>
+        <div class="nav-user">
+            <span class="user-info">Admin</span>
+            <button class="logout-btn" onclick="logout()">Déconnexion</button>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="main-content">
+        <div class="page-header">
+            <h2>Tableau de bord</h2>
+            <p>Vue d'ensemble du système de gestion des cours</p>
+        </div>
+
+        <!-- Widgets principaux -->
+        <div class="widgets-grid">
+            <!-- Widget 1: Cours planifiés -->
+            <div class="widget">
+                <div class="widget-header">
+                    <h3>📚 Cours planifiés</h3>
+                    <span class="widget-icon">📊</span>
+                </div>
+                <div class="widget-content">
+                    <div class="metric-value">127</div>
+                    <div class="metric-label">cours cette semaine</div>
+                    <div class="metric-change positive">+12% vs semaine dernière</div>
+                </div>
+            </div>
+
+            <!-- Widget 2: Conflits détectés -->
+            <div class="widget">
+                <div class="widget-header">
+                    <h3>⚠️ Conflits détectés</h3>
+                    <span class="widget-icon">🔍</span>
+                </div>
+                <div class="widget-content">
+                    <div class="metric-value">3</div>
+                    <div class="metric-label">conflits salles/horaires</div>
+                    <div class="metric-change negative">Nécessite attention</div>
+                </div>
+            </div>
+
+            <!-- Widget 3: Disponibilité profs -->
+            <div class="widget">
+                <div class="widget-header">
+                    <h3>👨‍🏫 Disponibilité profs</h3>
+                    <span class="widget-icon">📈</span>
+                </div>
+                <div class="widget-content">
+                    <div class="metric-value">78%</div>
+                    <div class="metric-label">taux de disponibilité</div>
+                    <div class="metric-change positive">+5% cette semaine</div>
+                </div>
+            </div>
+
+            <!-- Widget 4: Étudiants impactés -->
+            <div class="widget">
+                <div class="widget-header">
+                    <h3>👥 Étudiants impactés</h3>
+                    <span class="widget-icon">🎯</span>
+                </div>
+                <div class="widget-content">
+                    <div class="metric-value">45</div>
+                    <div class="metric-label">étudiants concernés</div>
+                    <div class="metric-change neutral">Stable</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graphiques et calendrier -->
+        <div class="charts-section">
+            <!-- Graphique en barres -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h3>📊 Cours par jour de la semaine</h3>
+                </div>
+                <div class="chart-content">
+                    <canvas id="coursesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Jauge d'occupation -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h3>🎯 Taux d'occupation des salles</h3>
+                </div>
+                <div class="chart-content">
+                    <div class="gauge-container">
+                        <div class="gauge">
+                            <div class="gauge-fill" style="--percentage: 65%"></div>
+                            <div class="gauge-text">65%</div>
+                        </div>
+                        <div class="gauge-labels">
+                            <span>0%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mini-calendrier -->
+        <div class="calendar-section">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <h3>📅 Aperçu du calendrier</h3>
+                    <div class="calendar-nav">
+                        <button onclick="previousMonth()">‹</button>
+                        <span id="currentMonth"></span>
+                        <button onclick="nextMonth()">›</button>
+                    </div>
+                </div>
+                <div class="calendar-content">
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Généré par JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accès rapide -->
+            <div class="quick-actions">
+                <h3>🚀 Actions rapides</h3>
+                <div class="action-buttons">
+                    <a href="gestion.html" class="action-btn primary">
+                        <span class="btn-icon">⚙️</span>
+                        Gestion des plannings
+                    </a>
+                    <a href="emploi-temps.html" class="action-btn secondary">
+                        <span class="btn-icon">📅</span>
+                        Voir emploi du temps
+                    </a>
+                    <button class="action-btn tertiary" onclick="generateReport()">
+                        <span class="btn-icon">📊</span>
+                        Générer rapport
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gestion des suggestions -->
+        <div class="suggestions-management">
+            <div class="suggestions-header">
+                <h3>💡 Gestion des suggestions de cours</h3>
+                <div class="suggestions-stats">
+                    <span class="stat-badge pending">3 en attente</span>
+                    <span class="stat-badge approved">5 approuvées</span>
+                    <span class="stat-badge rejected">2 rejetées</span>
+                </div>
+            </div>
+            
+            <div class="suggestions-list">
+                <div class="suggestion-card pending">
+                    <div class="suggestion-header">
+                        <h4>Mathématiques Avancées</h4>
+                        <span class="suggestion-status pending">En attente</span>
+                    </div>
+                    <div class="suggestion-details">
+                        <p><strong>Professeur:</strong> Dr. Martin</p>
+                        <p><strong>Code:</strong> MATH-301</p>
+                        <p><strong>Planning proposé:</strong> Lundi 09:00-11:00 (2h, Hebdomadaire)</p>
+                        <p><strong>Salle:</strong> Amphithéâtre, 50 places</p>
+                        <p><strong>Date de suggestion:</strong> 15 Janvier 2024</p>
+                    </div>
+                    <div class="suggestion-justification">
+                        <p><strong>Justification:</strong> Ce cours est essentiel pour préparer les étudiants aux examens de fin d'année. Il couvre les concepts avancés non abordés dans le cursus actuel.</p>
+                    </div>
+                    <div class="suggestion-actions">
+                        <button class="btn-success" onclick="approveSuggestion(1)">
+                            <span class="btn-icon">✅</span>
+                            Approuver
+                        </button>
+                        <button class="btn-danger" onclick="rejectSuggestion(1)">
+                            <span class="btn-icon">❌</span>
+                            Rejeter
+                        </button>
+                        <button class="btn-secondary" onclick="viewSuggestionDetails(1)">
+                            <span class="btn-icon">👁️</span>
+                            Voir détails
+                        </button>
+                    </div>
+                </div>
+
+                <div class="suggestion-card pending">
+                    <div class="suggestion-header">
+                        <h4>Physique Quantique</h4>
+                        <span class="suggestion-status pending">En attente</span>
+                    </div>
+                    <div class="suggestion-details">
+                        <p><strong>Professeur:</strong> Dr. Dubois</p>
+                        <p><strong>Code:</strong> PHYS-401</p>
+                        <p><strong>Planning proposé:</strong> Mercredi 14:00-16:00 (2h, Hebdomadaire)</p>
+                        <p><strong>Salle:</strong> Laboratoire, 25 places</p>
+                        <p><strong>Date de suggestion:</strong> 12 Janvier 2024</p>
+                    </div>
+                    <div class="suggestion-justification">
+                        <p><strong>Justification:</strong> Cours spécialisé pour les étudiants en master. Nécessite un laboratoire équipé pour les expériences pratiques.</p>
+                    </div>
+                    <div class="suggestion-actions">
+                        <button class="btn-success" onclick="approveSuggestion(2)">
+                            <span class="btn-icon">✅</span>
+                            Approuver
+                        </button>
+                        <button class="btn-danger" onclick="rejectSuggestion(2)">
+                            <span class="btn-icon">❌</span>
+                            Rejeter
+                        </button>
+                        <button class="btn-secondary" onclick="viewSuggestionDetails(2)">
+                            <span class="btn-icon">👁️</span>
+                            Voir détails
+                        </button>
+                    </div>
+                </div>
+
+                <div class="suggestion-card pending">
+                    <div class="suggestion-header">
+                        <h4>Algorithmes Avancés</h4>
+                        <span class="suggestion-status pending">En attente</span>
+                    </div>
+                    <div class="suggestion-details">
+                        <p><strong>Professeur:</strong> Dr. Leroy</p>
+                        <p><strong>Code:</strong> INFO-302</p>
+                        <p><strong>Planning proposé:</strong> Vendredi 10:30-12:30 (2h, Hebdomadaire)</p>
+                        <p><strong>Salle:</strong> Salle informatique, 30 places</p>
+                        <p><strong>Date de suggestion:</strong> 10 Janvier 2024</p>
+                    </div>
+                    <div class="suggestion-justification">
+                        <p><strong>Justification:</strong> Cours complémentaire pour les étudiants en informatique. Focus sur les algorithmes de tri et de recherche avancés.</p>
+                    </div>
+                    <div class="suggestion-actions">
+                        <button class="btn-success" onclick="approveSuggestion(3)">
+                            <span class="btn-icon">✅</span>
+                            Approuver
+                        </button>
+                        <button class="btn-danger" onclick="rejectSuggestion(3)">
+                            <span class="btn-icon">❌</span>
+                            Rejeter
+                        </button>
+                        <button class="btn-secondary" onclick="viewSuggestionDetails(3)">
+                            <span class="btn-icon">👁️</span>
+                            Voir détails
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="dashboard-script.js"></script>
+</body>
+</html>
