@@ -22,10 +22,10 @@ class AuthManager {
             const userData = localStorage.getItem('currentUser');
             if (userData) {
                 this.currentUser = JSON.parse(userData);
-                console.log('👤 Utilisateur chargé:', this.currentUser);
+                console.log(' Utilisateur chargé:', this.currentUser);
             }
         } catch (error) {
-            console.error('❌ Erreur lors du chargement de l\'utilisateur:', error);
+            console.error(' Erreur lors du chargement de l\'utilisateur:', error);
             this.logout();
         }
     }
@@ -35,9 +35,9 @@ class AuthManager {
         try {
             localStorage.setItem('currentUser', JSON.stringify(user));
             this.currentUser = user;
-            console.log('💾 Utilisateur sauvegardé:', user);
+            console.log(' Utilisateur sauvegardé:', user);
         } catch (error) {
-            console.error('❌ Erreur lors de la sauvegarde:', error);
+            console.error(' Erreur lors de la sauvegarde:', error);
         }
     }
 
@@ -87,7 +87,7 @@ class AuthManager {
     logout() {
         localStorage.removeItem('currentUser');
         this.currentUser = null;
-        console.log('👋 Utilisateur déconnecté');
+        console.log(' Utilisateur déconnecté');
         window.location.href = 'login.html';
     }
 
@@ -152,6 +152,33 @@ class AuthManager {
         }
     }
 
+    // Vérifier et rediriger si nécessaire
+    checkAndRedirect() {
+        const currentPage = this.getCurrentPageName();
+        
+        // Ne pas vérifier sur la page de login
+        if (currentPage === 'login') {
+            return;
+        }
+        
+        // Vérifier si l'utilisateur est connecté
+        if (!this.isLoggedIn()) {
+            console.log(' Utilisateur non connecté, redirection vers login');
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        // Vérifier les permissions d'accès
+        if (!this.canAccessPage(currentPage)) {
+            console.log(` Accès refusé à la page: ${currentPage}`);
+            this.redirectToDefaultPage();
+            return;
+        }
+        
+        // Mettre à jour l'interface utilisateur
+        this.updateUIForUser();
+    }
+
     // Protéger la page actuelle
     protectCurrentPage() {
         const currentPage = this.getCurrentPageName();
@@ -166,7 +193,7 @@ class AuthManager {
 
         // Vérifier l'accès à la page
         if (!this.canAccessPage(currentPage)) {
-            console.log(`❌ Accès refusé à la page: ${currentPage}`);
+            console.log(` Accès refusé à la page: ${currentPage}`);
             this.redirectToDefaultPage();
             return;
         }
@@ -204,8 +231,19 @@ class AuthManager {
             element.textContent = user.name;
         });
 
+        // Réinitialiser la navigation avant de la mettre à jour
+        this.resetNavigation();
+        
         // Mettre à jour la navigation selon le rôle
         this.updateNavigationForRole(user.role);
+    }
+
+    // Réinitialiser la navigation
+    resetNavigation() {
+        const navMenus = document.querySelectorAll('.nav-menu');
+        navMenus.forEach(navMenu => {
+            navMenu.dataset.updated = 'false';
+        });
     }
 
     // Mettre à jour la navigation selon le rôle
@@ -213,6 +251,11 @@ class AuthManager {
         const navMenus = document.querySelectorAll('.nav-menu');
         
         navMenus.forEach(navMenu => {
+            // Vérifier si la navigation a déjà été mise à jour
+            if (navMenu.dataset.updated === 'true') {
+                return;
+            }
+            
             // Supprimer tous les liens existants
             navMenu.innerHTML = '';
             
@@ -225,6 +268,9 @@ class AuthManager {
                 a.textContent = link.text;
                 navMenu.appendChild(a);
             });
+            
+            // Marquer comme mis à jour
+            navMenu.dataset.updated = 'true';
         });
     }
 
@@ -285,7 +331,7 @@ class AuthManager {
         
         const pageName = pageNames[currentPage] || currentPage;
         
-        alert(`❌ Accès refusé\n\nEn tant que ${user.name}, vous n'avez pas l'autorisation d'accéder à la page "${pageName}".\n\nVous allez être redirigé vers votre page d'accueil.`);
+        alert(` Accès refusé\n\nEn tant que ${user.name}, vous n'avez pas l'autorisation d'accéder à la page "${pageName}".\n\nVous allez être redirigé vers votre page d'accueil.`);
     }
 
     // Intercepter les clics sur les liens de navigation
@@ -308,6 +354,7 @@ class AuthManager {
                 
                 if (pageName && !this.canAccessPage(pageName)) {
                     e.preventDefault();
+                    e.stopPropagation();
                     this.showAccessDeniedMessage();
                     return false;
                 }
@@ -338,6 +385,20 @@ function logout() {
     authManager.logout();
 }
 
+// Gérer les changements de page
+window.addEventListener('beforeunload', () => {
+    // Réinitialiser la navigation avant de quitter la page
+    authManager.resetNavigation();
+});
+
+// Gérer le chargement de la page
+window.addEventListener('load', () => {
+    // Vérifier et rediriger si nécessaire après le chargement complet
+    setTimeout(() => {
+        authManager.checkAndRedirect();
+    }, 200);
+});
+
 // Vérification périodique de l'accès (seulement si pas sur la page de login)
 setInterval(() => {
     const currentPage = authManager.getCurrentPageName();
@@ -349,12 +410,12 @@ setInterval(() => {
 // Fonction de debug pour afficher les permissions
 function showUserPermissions() {
     if (!authManager.isLoggedIn()) {
-        console.log('❌ Aucun utilisateur connecté');
+        console.log(' Aucun utilisateur connecté');
         return;
     }
     
     const user = authManager.getCurrentUser();
-    console.log('👤 Utilisateur connecté:', user);
+    console.log(' Utilisateur connecté:', user);
     
     const permissions = {
         'admin': ['dashboard', 'gestion', 'suggestion-cours', 'emploi-temps'],
@@ -362,9 +423,9 @@ function showUserPermissions() {
         'student': ['emploi-temps']
     };
     
-    console.log('🔐 Permissions pour', user.role + ':', permissions[user.role]);
-    console.log('📄 Page actuelle:', authManager.getCurrentPageName());
-    console.log('✅ Accès autorisé:', authManager.canAccessPage(authManager.getCurrentPageName()));
+    console.log(' Permissions pour', user.role + ':', permissions[user.role]);
+    console.log(' Page actuelle:', authManager.getCurrentPageName());
+    console.log(' Accès autorisé:', authManager.canAccessPage(authManager.getCurrentPageName()));
 }
 
 // Exposer la fonction de debug globalement

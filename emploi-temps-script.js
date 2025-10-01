@@ -208,7 +208,7 @@ function applyFilters() {
         slot.style.display = show ? 'block' : 'none';
     });
 
-    alert('✅ Filtres appliqués !');
+    alert(' Filtres appliqués !');
 }
 
 // Actions d'impression et d'export
@@ -221,7 +221,7 @@ function exportSchedule() {
     
     // Simulation d'export
     setTimeout(() => {
-        alert('✅ Export terminé ! Le fichier PDF a été téléchargé.');
+        alert(' Export terminé ! Le fichier PDF a été téléchargé.');
     }, 2000);
 }
 
@@ -238,9 +238,9 @@ function shareSchedule() {
         // Fallback pour les navigateurs qui ne supportent pas l'API Share
         const url = window.location.href;
         navigator.clipboard.writeText(url).then(() => {
-            alert('✅ Lien copié dans le presse-papiers !');
+            alert(' Lien copié dans le presse-papiers !');
         }).catch(() => {
-            alert('❌ Impossible de copier le lien. Veuillez le copier manuellement :\n' + url);
+            alert(' Impossible de copier le lien. Veuillez le copier manuellement :\n' + url);
         });
     }
 }

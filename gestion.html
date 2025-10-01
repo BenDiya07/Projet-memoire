@@ -4,13 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion - Gestion des Cours Universitaires</title>
+    <script>
+        // Appliquer le thème immédiatement pour éviter le flash
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const savedRole = localStorage.getItem('userRole') || 'student';
+            document.documentElement.classList.add(`theme-${savedTheme}`);
+            document.body.classList.add(`theme-${savedTheme}`);
+            document.documentElement.classList.add(`role-${savedRole}`);
+            document.body.classList.add(`role-${savedRole}`);
+        })();
+    </script>
     <link rel="stylesheet" href="dashboard-styles.css">
 </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-brand">
-            <h1>🎓 Université</h1>
+            <h1>Département de Math-Info</h1>
         </div>
         <div class="nav-menu">
             <a href="dashboard.html" class="nav-link">Dashboard</a>
@@ -34,23 +45,23 @@
         <!-- Actions principales -->
         <div class="action-bar">
             <button class="btn-primary" onclick="openModal('addCourseModal')">
-                <span class="btn-icon">➕</span>
+                <span class="btn-icon"></span>
                 Ajouter un cours
             </button>
             <button class="btn-secondary" onclick="window.location.href='suggestion-cours.html'">
-                <span class="btn-icon">💡</span>
+                <span class="btn-icon"></span>
                 Suggérer un cours
             </button>
             <button class="btn-secondary" onclick="openModal('addProfessorModal')">
-                <span class="btn-icon">👨‍🏫</span>
+                <span class="btn-icon"></span>
                 Ajouter un professeur
             </button>
             <button class="btn-secondary" onclick="openModal('addRoomModal')">
-                <span class="btn-icon">🏢</span>
+                <span class="btn-icon"></span>
                 Ajouter une salle
             </button>
             <button class="btn-warning" onclick="checkConflicts()">
-                <span class="btn-icon">⚠️</span>
+                <span class="btn-icon"></span>
                 Vérifier les conflits
             </button>
         </div>
@@ -59,7 +70,7 @@
         <div class="filters-section">
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="Rechercher un cours, professeur ou salle...">
-                <button class="search-btn">🔍</button>
+                <button class="search-btn"></button>
             </div>
             <div class="filters">
                 <select id="professorFilter">
@@ -88,10 +99,10 @@
         <!-- Tableau des cours -->
         <div class="table-container">
             <div class="table-header">
-                <h3>📚 Liste des cours</h3>
+                <h3>Liste des cours</h3>
                 <div class="table-actions">
-                    <button class="btn-small" onclick="exportData()">📥 Exporter</button>
-                    <button class="btn-small" onclick="refreshData()">🔄 Actualiser</button>
+                    <button class="btn-small" onclick="exportData()"> Exporter</button>
+                    <button class="btn-small" onclick="refreshData()"> Actualiser</button>
                 </div>
             </div>
             <div class="table-wrapper">
@@ -122,8 +133,8 @@
                             <td>25</td>
                             <td><span class="status active">Actif</span></td>
                             <td>
-                                <button class="btn-icon-small" onclick="editCourse(1)" title="Modifier">✏️</button>
-                                <button class="btn-icon-small" onclick="deleteCourse(1)" title="Supprimer">🗑️</button>
+                                <button class="btn-icon-small" onclick="editCourse(1)" title="Modifier"></button>
+                                <button class="btn-icon-small" onclick="deleteCourse(1)" title="Supprimer"></button>
                             </td>
                         </tr>
                         <tr>
@@ -137,8 +148,8 @@
                             <td>20</td>
                             <td><span class="status active">Actif</span></td>
                             <td>
-                                <button class="btn-icon-small" onclick="editCourse(2)" title="Modifier">✏️</button>
-                                <button class="btn-icon-small" onclick="deleteCourse(2)" title="Supprimer">🗑️</button>
+                                <button class="btn-icon-small" onclick="editCourse(2)" title="Modifier"></button>
+                                <button class="btn-icon-small" onclick="deleteCourse(2)" title="Supprimer"></button>
                             </td>
                         </tr>
                         <tr>
@@ -152,8 +163,8 @@
                             <td>30</td>
                             <td><span class="status conflict">Conflit</span></td>
                             <td>
-                                <button class="btn-icon-small" onclick="editCourse(3)" title="Modifier">✏️</button>
-                                <button class="btn-icon-small" onclick="deleteCourse(3)" title="Supprimer">🗑️</button>
+                                <button class="btn-icon-small" onclick="editCourse(3)" title="Modifier"></button>
+                                <button class="btn-icon-small" onclick="deleteCourse(3)" title="Supprimer"></button>
                             </td>
                         </tr>
                     </tbody>
@@ -164,28 +175,28 @@
         <!-- Statistiques rapides -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon">📚</div>
+                <div class="stat-icon"></div>
                 <div class="stat-content">
                     <div class="stat-number">127</div>
                     <div class="stat-label">Cours total</div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">👨‍🏫</div>
+                <div class="stat-icon"></div>
                 <div class="stat-content">
                     <div class="stat-number">15</div>
                     <div class="stat-label">Professeurs</div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">🏢</div>
+                <div class="stat-icon"></div>
                 <div class="stat-content">
                     <div class="stat-number">25</div>
                     <div class="stat-label">Salles</div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">👥</div>
+                <div class="stat-icon"></div>
                 <div class="stat-content">
                     <div class="stat-number">450</div>
                     <div class="stat-label">Étudiants</div>
@@ -199,8 +210,8 @@
     <div id="addCourseModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>➕ Ajouter un nouveau cours</h3>
-                <button class="close-btn" onclick="closeModal('addCourseModal')">×</button>
+                <h3> Ajouter un nouveau cours</h3>
+                <button class="close-btn" onclick="closeModal('addCourseModal')"></button>
             </div>
             <div class="modal-body">
                 <form id="addCourseForm">
@@ -271,6 +282,7 @@
     </div>
 
     <script src="auth.js"></script>
+    <script src="theme.js"></script>
     <script src="gestion-script.js"></script>
 </body>
 </html>

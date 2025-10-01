@@ -207,7 +207,7 @@ function addCourse() {
     const hasConflict = checkForConflicts(newCourse);
     if (hasConflict) {
         newCourse.status = 'conflict';
-        alert('⚠️ Conflit détecté ! Le cours a été ajouté mais nécessite une attention particulière.');
+        alert(' Conflit détecté ! Le cours a été ajouté mais nécessite une attention particulière.');
     }
 
     courses.push(newCourse);
@@ -215,7 +215,7 @@ function addCourse() {
     closeModal('addCourseModal');
     form.reset();
     
-    alert('✅ Cours ajouté avec succès !');
+    alert(' Cours ajouté avec succès !');
 }
 
 // Vérifier les conflits
@@ -251,9 +251,9 @@ function checkConflicts() {
     updateTable();
     
     if (conflicts.length > 0) {
-        alert(`⚠️ ${conflicts.length} conflit(s) détecté(s) :\n\n${conflicts.map(c => `- ${c.subject} (${c.room}, ${c.day} ${c.time})`).join('\n')}`);
+        alert(` ${conflicts.length} conflit(s) détecté(s) :\n\n${conflicts.map(c => `- ${c.subject} (${c.room}, ${c.day} ${c.time})`).join('\n')}`);
     } else {
-        alert('✅ Aucun conflit détecté !');
+        alert(' Aucun conflit détecté !');
     }
 }
 
@@ -266,7 +266,7 @@ function editCourse(courseId) {
     if (newSubject && newSubject !== course.subject) {
         course.subject = newSubject;
         updateTable();
-        alert('✅ Cours modifié avec succès !');
+        alert(' Cours modifié avec succès !');
     }
 }
 
@@ -278,7 +278,7 @@ function deleteCourse(courseId) {
     if (confirm(`Êtes-vous sûr de vouloir supprimer le cours "${course.subject}" ?`)) {
         courses = courses.filter(c => c.id !== courseId);
         updateTable();
-        alert('✅ Cours supprimé avec succès !');
+        alert(' Cours supprimé avec succès !');
     }
 }
 
@@ -306,7 +306,7 @@ function refreshData() {
         updateTable();
         loadingBtn.textContent = originalText;
         loadingBtn.disabled = false;
-        alert('✅ Données actualisées !');
+        alert(' Données actualisées !');
     }, 1000);
 }
 

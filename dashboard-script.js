@@ -264,15 +264,15 @@ function updateSuggestionsDisplay() {
             </div>
             <div class="suggestion-actions">
                 <button class="btn-success" onclick="approveSuggestion(${suggestion.id})">
-                    <span class="btn-icon">✅</span>
+                    <span class="btn-icon"></span>
                     Approuver
                 </button>
                 <button class="btn-danger" onclick="rejectSuggestion(${suggestion.id})">
-                    <span class="btn-icon">❌</span>
+                    <span class="btn-icon"></span>
                     Rejeter
                 </button>
                 <button class="btn-secondary" onclick="viewSuggestionDetails(${suggestion.id})">
-                    <span class="btn-icon">👁️</span>
+                    <span class="btn-icon"></span>
                     Voir détails
                 </button>
             </div>
@@ -306,7 +306,7 @@ function approveSuggestion(id) {
             loadingBtn.textContent = originalText;
             loadingBtn.disabled = false;
             
-            alert(`✅ Suggestion "${suggestion.name}" approuvée avec succès !\n\nLe cours a été ajouté au planning et le professeur a été notifié.`);
+            alert(` Suggestion "${suggestion.name}" approuvée avec succès !\n\nLe cours a été ajouté au planning et le professeur a été notifié.`);
         }, 1500);
     }
 }
@@ -340,7 +340,7 @@ function rejectSuggestion(id) {
             loadingBtn.textContent = originalText;
             loadingBtn.disabled = false;
             
-            alert(`❌ Suggestion "${suggestion.name}" rejetée.\n\nRaison : ${reason}\n\nLe professeur a été notifié du rejet.`);
+            alert(` Suggestion "${suggestion.name}" rejetée.\n\nRaison : ${reason}\n\nLe professeur a été notifié du rejet.`);
         }, 1500);
     }
 }
@@ -350,7 +350,7 @@ function viewSuggestionDetails(id) {
     const suggestion = suggestions.find(s => s.id === id);
     if (!suggestion) return;
 
-    let details = `📋 Détails de la suggestion :\n\n`;
+    let details = ` Détails de la suggestion :\n\n`;
     details += `Nom : ${suggestion.name}\n`;
     details += `Professeur : ${suggestion.professor}\n`;
     details += `Code : ${suggestion.code}\n`;
@@ -390,22 +390,22 @@ function updateSuggestionCard(id) {
         if (suggestion.status === 'approved') {
             actionsDiv.innerHTML = `
                 <button class="btn-success" disabled>
-                    <span class="btn-icon">✅</span>
+                    <span class="btn-icon"></span>
                     Approuvé
                 </button>
                 <button class="btn-secondary" onclick="viewSuggestionDetails(${id})">
-                    <span class="btn-icon">👁️</span>
+                    <span class="btn-icon"></span>
                     Voir détails
                 </button>
             `;
         } else if (suggestion.status === 'rejected') {
             actionsDiv.innerHTML = `
                 <button class="btn-danger" disabled>
-                    <span class="btn-icon">❌</span>
+                    <span class="btn-icon"></span>
                     Rejeté
                 </button>
                 <button class="btn-secondary" onclick="viewSuggestionDetails(${id})">
-                    <span class="btn-icon">👁️</span>
+                    <span class="btn-icon"></span>
                     Voir détails
                 </button>
             `;
@@ -442,9 +442,9 @@ function getStatusText(status) {
 function saveSuggestionsToStorage() {
     try {
         localStorage.setItem('allSuggestions', JSON.stringify(suggestions));
-        console.log('💾 Suggestions sauvegardées:', suggestions.length);
+        console.log(' Suggestions sauvegardées:', suggestions.length);
     } catch (error) {
-        console.error('❌ Erreur lors de la sauvegarde:', error);
+        console.error(' Erreur lors de la sauvegarde:', error);
     }
 }
 

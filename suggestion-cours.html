@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suggestion de cours - Professeur</title>
+    <script>
+        // Appliquer le thème immédiatement pour éviter le flash
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const savedRole = localStorage.getItem('userRole') || 'student';
+            document.documentElement.classList.add(`theme-${savedTheme}`);
+            document.body.classList.add(`theme-${savedTheme}`);
+            document.documentElement.classList.add(`role-${savedRole}`);
+            document.body.classList.add(`role-${savedRole}`);
+        })();
+    </script>
     <link rel="stylesheet" href="dashboard-styles.css">
 </head>
 <body>
@@ -228,6 +239,7 @@
     </main>
 
     <script src="auth.js"></script>
+    <script src="theme.js"></script>
     <script src="suggestion-cours-script.js"></script>
 </body>
 </html>
