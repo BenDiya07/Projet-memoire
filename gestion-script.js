@@ -310,12 +310,7 @@ function refreshData() {
     }, 1000);
 }
 
-// Déconnexion
-function logout() {
-    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-        window.location.href = 'login.html';
-    }
-}
+// La fonction logout est maintenant gérée par auth.js
 
 // Animation d'entrée pour les éléments
 document.addEventListener('DOMContentLoaded', function() {

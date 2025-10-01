@@ -4,7 +4,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const formContainers = document.querySelectorAll('.form-container');
 
     tabBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
             const targetTab = this.getAttribute('data-tab');
             
             // Retirer la classe active de tous les boutons et conteneurs
@@ -21,35 +24,62 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // Empêcher les rechargements automatiques lors de la saisie
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('input', function(e) {
+            e.stopPropagation();
+        });
+        
+        input.addEventListener('change', function(e) {
+            e.stopPropagation();
+        });
+        
+        input.addEventListener('keydown', function(e) {
+            // Empêcher la soumission du formulaire avec Enter
+            if (e.key === 'Enter' && e.target.type !== 'submit') {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
+    });
 });
 
 // Gestion du formulaire de connexion
-document.getElementById('loginForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    if (!loginForm) return;
     
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const role = document.querySelector('input[name="role"]:checked').value;
-    
-    // Simulation de connexion
-    if (email && password) {
-        alert(`Connexion en tant que ${role} avec l'email: ${email}`);
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         
-        // Redirection selon le rôle
-        switch(role) {
-            case 'admin':
-                window.location.href = 'dashboard.html';
-                break;
-            case 'professor':
-                window.location.href = 'gestion.html';
-                break;
-            case 'student':
-                window.location.href = 'emploi-temps.html';
-                break;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const role = document.querySelector('input[name="role"]:checked').value;
+        
+        // Validation des champs
+        if (!email || !password) {
+            alert('❌ Veuillez remplir tous les champs');
+            return false;
         }
-    } else {
-        alert('Veuillez remplir tous les champs');
-    }
+        
+        // Tentative de connexion
+        const result = authManager.login(email, password, role);
+        
+        if (result.success) {
+            alert(`✅ Connexion réussie !\n\nBienvenue ${result.user.name}`);
+            
+            // Redirection vers la page par défaut du rôle
+            const defaultPage = authManager.getDefaultPage(role);
+            window.location.href = defaultPage;
+        } else {
+            alert(`❌ ${result.message}\n\nVérifiez vos identifiants et votre rôle.`);
+        }
+        
+        return false;
+    });
 });
 
 // Gestion du formulaire d'inscription

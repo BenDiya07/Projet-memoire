@@ -144,11 +144,7 @@ function generateReport() {
     alert('Génération du rapport en cours...\n\nLe rapport sera disponible dans quelques instants.');
 }
 
-function logout() {
-    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-        window.location.href = 'login.html';
-    }
-}
+// La fonction logout est maintenant gérée par auth.js
 
 // Animation des widgets
 document.addEventListener('DOMContentLoaded', function() {

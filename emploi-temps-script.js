@@ -245,33 +245,9 @@ function shareSchedule() {
     }
 }
 
-// Déconnexion
-function logout() {
-    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-        window.location.href = 'login.html';
-    }
-}
+// La fonction logout est maintenant gérée par auth.js
 
-// Empêcher l'accès aux autres pages pour les étudiants
-document.addEventListener('DOMContentLoaded', function() {
-    // Bloquer la navigation vers d'autres pages
-    const originalOpen = window.open;
-    window.open = function(url, ...args) {
-        if (url && (url.includes('dashboard.html') || url.includes('gestion.html'))) {
-            alert('❌ Accès non autorisé. En tant qu\'étudiant, vous ne pouvez accéder qu\'à votre emploi du temps.');
-            return null;
-        }
-        return originalOpen.call(this, url, ...args);
-    };
-
-    // Empêcher la navigation via l'historique
-    window.addEventListener('beforeunload', function(e) {
-        // Cette fonction peut être utilisée pour des vérifications supplémentaires
-    });
-
-    // Afficher un message d'information pour l'étudiant
-    console.log('🎓 Mode étudiant activé - Accès limité à l\'emploi du temps uniquement');
-});
+// La gestion des accès est maintenant centralisée dans auth.js
 
 // Animation d'entrée
 document.addEventListener('DOMContentLoaded', function() {
