@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Login - Diagnostic Complet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .error { color: red; font-weight: bold; }
+        .success { color: green; font-weight: bold; }
+        .warning { color: orange; font-weight: bold; }
+        .info { color: blue; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { background: #0056b3; }
+        .console-output {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .test-form {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Diagnostic Complet - Page Login</h1>
+    
+    <div class="debug-section">
+        <h2>📁 Test 1: Chargement des fichiers</h2>
+        <div id="files-status"></div>
+        <button onclick="testFileLoading()">Tester le chargement</button>
+    </div>
+    
+    <div class="debug-section">
+        <h2>🔧 Test 2: Variables globales</h2>
+        <div id="variables-status"></div>
+        <button onclick="testVariables()">Vérifier les variables</button>
+    </div>
+    
+    <div class="debug-section">
+        <h2>📝 Test 3: Formulaires</h2>
+        <div id="forms-status"></div>
+        <button onclick="testForms()">Vérifier les formulaires</button>
+    </div>
+    
+    <div class="debug-section">
+        <h2>🔐 Test 4: Authentification</h2>
+        <div class="test-form">
+            <input type="email" id="test-email" placeholder="Email" value="admin@univ.fr">
+            <input type="password" id="test-password" placeholder="Mot de passe" value="admin123">
+            <select id="test-role">
+                <option value="admin">Admin</option>
+                <option value="professor">Professeur</option>
+                <option value="student">Étudiant</option>
+            </select>
+            <button onclick="testLogin()">Tester la connexion</button>
+        </div>
+        <div id="auth-status"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>📊 Test 5: LocalStorage</h2>
+        <div id="storage-status"></div>
+        <button onclick="testStorage()">Vérifier le stockage</button>
+        <button onclick="clearStorage()">Vider le stockage</button>
+    </div>
+    
+    <div class="debug-section">
+        <h2>🎨 Test 6: Thème</h2>
+        <div id="theme-status"></div>
+        <button onclick="testTheme()">Tester le thème</button>
+        <button onclick="toggleTheme()">Basculer le thème</button>
+    </div>
+    
+    <div class="debug-section">
+        <h2>📋 Console d'erreurs</h2>
+        <div id="console-output" class="console-output"></div>
+        <button onclick="clearConsole()">Vider la console</button>
+    </div>
+    
+    <div class="debug-section">
+        <h2>🚀 Test complet</h2>
+        <button onclick="runFullTest()">Lancer tous les tests</button>
+        <div id="full-test-results"></div>
+    </div>
+
+    <script>
+        // Capturer toutes les erreurs
+        const consoleOutput = document.getElementById('console-output');
+        const errors = [];
+        
+        function logToConsole(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff0000' : type === 'warning' ? '#ffaa00' : '#00ff00';
+            consoleOutput.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        // Intercepter console.error
+        const originalError = console.error;
+        console.error = function(...args) {
+            errors.push(args.join(' '));
+            logToConsole(args.join(' '), 'error');
+            originalError.apply(console, args);
+        };
+        
+        // Intercepter console.warn
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+            logToConsole(args.join(' '), 'warning');
+            originalWarn.apply(console, args);
+        };
+        
+        // Intercepter les erreurs JavaScript
+        window.addEventListener('error', function(e) {
+            logToConsole(`Erreur: ${e.message} dans ${e.filename}:${e.lineno}`, 'error');
+        });
+        
+        // Test 1: Chargement des fichiers
+        function testFileLoading() {
+            const files = ['auth.js', 'theme.js', 'script.js', 'styles.css'];
+            const statusDiv = document.getElementById('files-status');
+            let results = [];
+            
+            files.forEach(file => {
+                if (file.endsWith('.js')) {
+                    // Test des scripts JavaScript
+                    try {
+                        if (file === 'auth.js' && typeof authManager !== 'undefined') {
+                            results.push(`<span class="success">✓ ${file} chargé et initialisé</span>`);
+                        } else if (file === 'theme.js' && typeof themeManager !== 'undefined') {
+                            results.push(`<span class="success">✓ ${file} chargé et initialisé</span>`);
+                        } else if (file === 'script.js') {
+                            results.push(`<span class="success">✓ ${file} chargé</span>`);
+                        } else {
+                            results.push(`<span class="warning">⚠ ${file} chargé mais non initialisé</span>`);
+                        }
+                    } catch (error) {
+                        results.push(`<span class="error">✗ ${file} erreur: ${error.message}</span>`);
+                    }
+                } else {
+                    // Test des CSS
+                    const link = document.querySelector(`link[href="${file}"]`);
+                    if (link) {
+                        results.push(`<span class="success">✓ ${file} trouvé</span>`);
+                    } else {
+                        results.push(`<span class="error">✗ ${file} non trouvé</span>`);
+                    }
+                }
+            });
+            
+            statusDiv.innerHTML = results.join('<br>');
+        }
+        
+        // Test 2: Variables globales
+        function testVariables() {
+            const statusDiv = document.getElementById('variables-status');
+            const variables = [
+                'authManager',
+                'themeManager',
+                'toggleTheme',
+                'testRegistration'
+            ];
+            
+            let results = [];
+            variables.forEach(variable => {
+                if (typeof window[variable] !== 'undefined') {
+                    results.push(`<span class="success">✓ ${variable} disponible</span>`);
+                } else {
+                    results.push(`<span class="error">✗ ${variable} non disponible</span>`);
+                }
+            });
+            
+            statusDiv.innerHTML = results.join('<br>');
+        }
+        
+        // Test 3: Formulaires
+        function testForms() {
+            const statusDiv = document.getElementById('forms-status');
+            const forms = ['loginForm', 'registerForm'];
+            let results = [];
+            
+            forms.forEach(formId => {
+                const form = document.getElementById(formId);
+                if (form) {
+                    results.push(`<span class="success">✓ ${formId} trouvé</span>`);
+                    
+                    // Vérifier les événements
+                    const events = getEventListeners ? getEventListeners(form) : null;
+                    if (events && events.submit) {
+                        results.push(`<span class="success">✓ ${formId} a des événements submit</span>`);
+                    } else {
+                        results.push(`<span class="warning">⚠ ${formId} pas d'événements détectés</span>`);
+                    }
+                } else {
+                    results.push(`<span class="error">✗ ${formId} non trouvé</span>`);
+                }
+            });
+            
+            statusDiv.innerHTML = results.join('<br>');
+        }
+        
+        // Test 4: Authentification
+        function testLogin() {
+            const statusDiv = document.getElementById('auth-status');
+            const email = document.getElementById('test-email').value;
+            const password = document.getElementById('test-password').value;
+            const role = document.getElementById('test-role').value;
+            
+            statusDiv.innerHTML = '<div class="info">Test en cours...</div>';
+            
+            try {
+                if (typeof authManager === 'undefined') {
+                    statusDiv.innerHTML = '<div class="error">✗ AuthManager non disponible</div>';
+                    return;
+                }
+                
+                logToConsole(`Tentative de connexion: ${email} / ${role}`);
+                
+                const result = authManager.login(email, password, role);
+                
+                if (result.success) {
+                    statusDiv.innerHTML = `<div class="success">✓ Connexion réussie: ${result.user.name}</div>`;
+                    logToConsole('Connexion réussie');
+                } else {
+                    statusDiv.innerHTML = `<div class="error">✗ Erreur: ${result.message}</div>`;
+                    logToConsole(`Erreur de connexion: ${result.message}`);
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">✗ Erreur JavaScript: ${error.message}</div>`;
+                logToConsole(`Erreur JavaScript: ${error.message}`, 'error');
+            }
+        }
+        
+        // Test 5: LocalStorage
+        function testStorage() {
+            const statusDiv = document.getElementById('storage-status');
+            const keys = ['theme', 'userRole', 'currentUser'];
+            let results = [];
+            
+            keys.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value) {
+                    results.push(`<span class="success">✓ ${key}: ${value}</span>`);
+                } else {
+                    results.push(`<span class="warning">⚠ ${key}: non défini</span>`);
+                }
+            });
+            
+            statusDiv.innerHTML = results.join('<br>');
+        }
+        
+        function clearStorage() {
+            localStorage.clear();
+            logToConsole('LocalStorage vidé');
+            testStorage();
+        }
+        
+        // Test 6: Thème
+        function testTheme() {
+            const statusDiv = document.getElementById('theme-status');
+            let results = [];
+            
+            if (typeof themeManager !== 'undefined') {
+                results.push(`<span class="success">✓ ThemeManager disponible</span>`);
+                results.push(`<span class="info">Thème actuel: ${themeManager.currentTheme}</span>`);
+                results.push(`<span class="info">Rôle actuel: ${themeManager.currentRole}</span>`);
+            } else {
+                results.push(`<span class="error">✗ ThemeManager non disponible</span>`);
+            }
+            
+            // Vérifier les classes CSS
+            const bodyClasses = document.body.className;
+            results.push(`<span class="info">Classes du body: ${bodyClasses}</span>`);
+            
+            statusDiv.innerHTML = results.join('<br>');
+        }
+        
+        // Test complet
+        function runFullTest() {
+            logToConsole('=== DÉBUT DU TEST COMPLET ===');
+            
+            testFileLoading();
+            testVariables();
+            testForms();
+            testStorage();
+            testTheme();
+            
+            logToConsole('=== FIN DU TEST COMPLET ===');
+            
+            document.getElementById('full-test-results').innerHTML = 
+                '<div class="success">Test complet terminé - Vérifiez les résultats ci-dessus</div>';
+        }
+        
+        function clearConsole() {
+            consoleOutput.innerHTML = '';
+        }
+        
+        // Lancer les tests au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            logToConsole('Page chargée - Début des tests automatiques');
+            setTimeout(() => {
+                runFullTest();
+            }, 1000);
+        });
+    </script>
+    
+    <!-- Charger les scripts de l'application -->
+    <script src="auth.js"></script>
+    <script src="theme.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+

@@ -217,7 +217,7 @@ function printSchedule() {
 }
 
 function exportSchedule() {
-    alert('📥 Export en PDF en cours...\n\nLe fichier sera téléchargé dans quelques instants.');
+    alert(' Export en PDF en cours...\n\nLe fichier sera téléchargé dans quelques instants.');
     
     // Simulation d'export
     setTimeout(() => {

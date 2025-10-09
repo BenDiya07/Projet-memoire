@@ -41,28 +41,166 @@ class AuthManager {
         }
     }
 
-    // Connexion
-    login(email, password, role) {
-        // Simulation de validation des identifiants
-        const validCredentials = this.validateCredentials(email, password, role);
+    // Inscription
+    register(userData) {
+        try {
+            // Vérifier si l'utilisateur existe déjà
+            const existingUsers = this.getRegisteredUsers();
+            const userExists = existingUsers.some(user => user.email === userData.email);
+            
+            if (userExists) {
+                return {
+                    success: false,
+                    message: 'Un compte avec cet email existe déjà'
+                };
+            }
+            
+            // Créer le nouvel utilisateur
+            const newUser = {
+                id: Date.now(),
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                email: userData.email,
+                password: userData.password, // En production, il faudrait hasher le mot de passe
+                role: userData.role,
+                studentId: userData.studentId || null,
+                registeredAt: new Date().toISOString(),
+                isActive: true
+            };
+            
+            // Sauvegarder l'utilisateur
+            existingUsers.push(newUser);
+            localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
+            
+            return {
+                success: true,
+                user: newUser,
+                message: 'Inscription réussie'
+            };
+        } catch (error) {
+            console.error('Erreur lors de l\'inscription:', error);
+            return {
+                success: false,
+                message: 'Erreur lors de l\'inscription'
+            };
+        }
+    }
+
+    // Obtenir les utilisateurs enregistrés
+    getRegisteredUsers() {
+        try {
+            const users = localStorage.getItem('registeredUsers');
+            return users ? JSON.parse(users) : [];
+        } catch (error) {
+            console.error('Erreur lors du chargement des utilisateurs:', error);
+            return [];
+        }
+    }
+
+    // Connexion - Détection automatique du rôle
+    async login(email, password) {
+        try {
+            // Appel API au backend
+            const response = await fetch('http://localhost:5000/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                    // Plus besoin d'envoyer le rôle !
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Stocker le token JWT
+                localStorage.setItem('token', data.access_token);
+                
+                // Stocker les informations utilisateur
+                const user = data.user;
+                this.saveUserToStorage(user);
+                
+                // Stocker le rôle (détecté automatiquement par le backend)
+                localStorage.setItem('userRole', user.role.name);
+                
+                console.log('✅ Connexion réussie en tant que:', user.role.name);
+                
+                return {
+                    success: true,
+                    user: user,
+                    message: data.message
+                };
+            } else {
+                return {
+                    success: false,
+                    message: data.message
+                };
+            }
+        } catch (error) {
+            console.error('❌ Erreur de connexion:', error);
+            
+            // Fallback: Utiliser la détection locale si le backend n'est pas disponible
+            return this.loginFallback(email, password);
+        }
+    }
+    
+    // Fallback local si le backend n'est pas disponible
+    loginFallback(email, password) {
+        // Vérifier les utilisateurs enregistrés localement
+        const registeredUsers = this.getRegisteredUsers();
+        const user = registeredUsers.find(u => u.email === email && u.password === password);
         
-        if (validCredentials) {
+        if (user) {
+            const loginUser = {
+                id: user.id,
+                email: user.email,
+                name: `${user.firstName} ${user.lastName}`,
+                role: user.role,
+                loginTime: new Date().toISOString()
+            };
+            
+            this.saveUserToStorage(loginUser);
+            localStorage.setItem('userRole', user.role);
+            
+            return {
+                success: true,
+                user: loginUser,
+                message: 'Connexion réussie (mode local)'
+            };
+        }
+        
+        // Vérifier les comptes de démonstration
+        const demoUser = this.validateCredentialsAutoDetect(email, password);
+        
+        if (demoUser) {
             const user = {
                 email: email,
-                role: role,
-                name: this.getUserNameByRole(role),
+                role: demoUser.role,
+                name: this.getUserNameByRole(demoUser.role),
                 loginTime: new Date().toISOString()
             };
             
             this.saveUserToStorage(user);
-            return { success: true, user: user };
-        } else {
-            return { success: false, message: 'Identifiants invalides' };
+            localStorage.setItem('userRole', demoUser.role);
+            
+            return { 
+                success: true, 
+                user: user,
+                message: 'Connexion réussie (mode démo)'
+            };
         }
+        
+        return { 
+            success: false, 
+            message: 'Identifiants invalides' 
+        };
     }
 
-    // Validation des identifiants
-    validateCredentials(email, password, role) {
+    // Validation des identifiants avec détection automatique du rôle
+    validateCredentialsAutoDetect(email, password) {
         const credentials = {
             'admin@univ.fr': { password: 'admin123', role: 'admin' },
             'prof@univ.fr': { password: 'prof123', role: 'professor' },
@@ -70,7 +208,17 @@ class AuthManager {
         };
 
         const userCreds = credentials[email];
-        return userCreds && userCreds.password === password && userCreds.role === role;
+        // Retourne l'objet utilisateur avec le rôle si les credentials sont valides
+        if (userCreds && userCreds.password === password) {
+            return { role: userCreds.role };
+        }
+        return null;
+    }
+    
+    // Ancienne méthode gardée pour compatibilité
+    validateCredentials(email, password, role) {
+        const userCreds = this.validateCredentialsAutoDetect(email, password);
+        return userCreds && userCreds.role === role;
     }
 
     // Obtenir le nom d'utilisateur par rôle
