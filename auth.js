@@ -41,8 +41,44 @@ class AuthManager {
         }
     }
 
-    // Inscription
-    register(userData) {
+    // Inscription - Utilise l'API backend
+    async register(userData) {
+        try {
+            // Appel API au backend pour l'inscription
+            const response = await fetch('http://localhost:5500/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                console.log('✅ Inscription réussie via API:', data.user);
+                
+                return {
+                    success: true,
+                    user: data.user,
+                    message: data.message || 'Inscription réussie'
+                };
+            } else {
+                return {
+                    success: false,
+                    message: data.message || 'Erreur lors de l\'inscription'
+                };
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de l\'inscription:', error);
+            
+            // Fallback: inscription locale si le backend n'est pas disponible
+            return this.registerFallback(userData);
+        }
+    }
+    
+    // Fallback local si le backend n'est pas disponible
+    registerFallback(userData) {
         try {
             // Vérifier si l'utilisateur existe déjà
             const existingUsers = this.getRegisteredUsers();
@@ -61,24 +97,24 @@ class AuthManager {
                 firstName: userData.firstName,
                 lastName: userData.lastName,
                 email: userData.email,
-                password: userData.password, // En production, il faudrait hasher le mot de passe
+                password: userData.password,
                 role: userData.role,
                 studentId: userData.studentId || null,
                 registeredAt: new Date().toISOString(),
                 isActive: true
             };
             
-            // Sauvegarder l'utilisateur
+            // Sauvegarder l'utilisateur localement
             existingUsers.push(newUser);
             localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
             
             return {
                 success: true,
                 user: newUser,
-                message: 'Inscription réussie'
+                message: 'Inscription réussie (mode local)'
             };
         } catch (error) {
-            console.error('Erreur lors de l\'inscription:', error);
+            console.error('Erreur lors de l\'inscription locale:', error);
             return {
                 success: false,
                 message: 'Erreur lors de l\'inscription'
@@ -100,8 +136,8 @@ class AuthManager {
     // Connexion - Détection automatique du rôle
     async login(email, password) {
         try {
-            // Appel API au backend
-            const response = await fetch('http://localhost:5000/api/auth/login', {
+            // Appel API au backend sur le port 5001
+            const response = await fetch('http://localhost:5001/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

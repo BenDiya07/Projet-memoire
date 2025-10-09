@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    registerForm.addEventListener('submit', function(e) {
+    registerForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const firstName = document.getElementById('reg-firstName').value;
@@ -117,26 +117,32 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Validation
         if (!firstName || !lastName || !email || !password || !confirmPassword) {
-            alert('Veuillez remplir tous les champs obligatoires');
+            alert('⚠️ Veuillez remplir tous les champs obligatoires');
             return;
         }
         
         if (password.length < 6) {
-            alert('Le mot de passe doit contenir au moins 6 caractères');
+            alert('⚠️ Le mot de passe doit contenir au moins 6 caractères');
             return;
         }
         
         if (password !== confirmPassword) {
-            alert('Les mots de passe ne correspondent pas');
+            alert('⚠️ Les mots de passe ne correspondent pas');
             return;
         }
         
         if (!terms) {
-            alert('Vous devez accepter les conditions d\'utilisation');
+            alert('⚠️ Vous devez accepter les conditions d\'utilisation');
             return;
         }
         
-        // Inscription réelle
+        // Afficher un indicateur de chargement
+        const submitBtn = registerForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Inscription en cours...';
+        submitBtn.disabled = true;
+        
+        // Inscription via API (async)
         const userData = {
             firstName,
             lastName,
@@ -146,22 +152,33 @@ document.addEventListener('DOMContentLoaded', function() {
             studentId: studentId || null
         };
         
-        console.log('Données d\'inscription:', userData);
-        console.log('AuthManager disponible:', typeof authManager);
+        console.log('📝 Données d\'inscription:', userData);
         
-        const result = authManager.register(userData);
-        console.log('Résultat de l\'inscription:', result);
-        
-        if (result.success) {
-            alert(`Inscription réussie !\n\nNom: ${firstName} ${lastName}\nEmail: ${email}\nRôle: ${role}\n${studentId ? `Numéro étudiant: ${studentId}` : ''}\n\nVous pouvez maintenant vous connecter.`);
+        try {
+            const result = await authManager.register(userData);
+            console.log('📊 Résultat de l\'inscription:', result);
             
-            // Réinitialiser le formulaire
-            this.reset();
+            // Restaurer le bouton
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
             
-            // Basculer vers l'onglet de connexion
-            document.querySelector('[data-tab="login"]').click();
-        } else {
-            alert(`Erreur d'inscription: ${result.message}`);
+            if (result.success) {
+                alert(`✅ Inscription réussie !\n\nNom: ${firstName} ${lastName}\nEmail: ${email}\nRôle: ${role}\n${studentId ? `Numéro étudiant: ${studentId}` : ''}\n\nVous pouvez maintenant vous connecter.`);
+                
+                // Réinitialiser le formulaire
+                registerForm.reset();
+                
+                // Basculer vers l'onglet de connexion
+                document.querySelector('[data-tab="login"]').click();
+            } else {
+                alert(`❌ Erreur d'inscription: ${result.message}`);
+            }
+        } catch (error) {
+            // Restaurer le bouton
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            
+            alert(`❌ Erreur d'inscription: ${error.message}`);
         }
     });
 });

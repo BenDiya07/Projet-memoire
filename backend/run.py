@@ -9,7 +9,7 @@ import os
 if __name__ == '__main__':
     app = create_app()
     
-    port = int(os.getenv('PORT', 5000))
+    port = int(os.getenv('PORT', 5001))  # ← Port 5001 pour éviter conflit avec Live Server (5500)
     debug = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
     
     print("=" * 60)
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     print("=" * 60)
     print(f"\n🌐 Serveur démarré sur http://localhost:{port}")
     print(f"🔧 Mode: {'DEBUG' if debug else 'PRODUCTION'}")
-    print(f"📊 Base de données: {os.getenv('DB_NAME', 'gestion_cours_db')}")
+    print(f"📊 Base de données: {os.getenv('DB_NAME', 'university')}")
     print("\n📝 Endpoints disponibles:")
     print("   - http://localhost:{}/health".format(port))
     print("   - http://localhost:{}/api/auth/login".format(port))
