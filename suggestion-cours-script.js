@@ -4,22 +4,16 @@
 let suggestions = [
     {
         id: 1,
-        name: 'Mathématiques Avancées',
-        code: 'MATH-301',
         status: 'pending',
         date: '15 Janvier 2024'
     },
     {
         id: 2,
-        name: 'Physique Quantique',
-        code: 'PHYS-401',
         status: 'approved',
         date: '10 Janvier 2024'
     },
     {
         id: 3,
-        name: 'Algorithmes Avancés',
-        code: 'INFO-302',
         status: 'rejected',
         date: '5 Janvier 2024'
     }
@@ -52,9 +46,6 @@ function handleSubmit(e) {
     
     const formData = new FormData(e.target);
     const suggestionData = {
-        courseName: formData.get('courseName'),
-        courseCode: formData.get('courseCode'),
-        courseDescription: formData.get('courseDescription'),
         preferredDay: formData.get('preferredDay'),
         preferredTime: formData.get('preferredTime'),
         duration: formData.get('duration'),
@@ -84,9 +75,6 @@ function handleSubmit(e) {
         // Créer la nouvelle suggestion avec tous les détails
         const newSuggestion = {
             id: Date.now(), // ID unique basé sur le timestamp
-            name: suggestionData.courseName,
-            code: suggestionData.courseCode,
-            description: suggestionData.courseDescription,
             professor: 'Dr. Martin', // Simulé - en réalité viendrait de la session
             day: suggestionData.preferredDay,
             time: suggestionData.preferredTime,
@@ -122,7 +110,7 @@ function handleSubmit(e) {
         loadingBtn.disabled = false;
         
         // Message de succès avec détails
-        alert(`✅ Suggestion envoyée avec succès !\n\n📋 Détails :\n• Nom: ${newSuggestion.name}\n• Code: ${newSuggestion.code}\n• ID: ${newSuggestion.id}\n\nVotre demande sera examinée par l'administration et vous recevrez une réponse dans les plus brefs délais.`);
+        alert(` Suggestion envoyée avec succès !\n\n Détails :\n• Nom: ${newSuggestion.name}\n• Code: ${newSuggestion.code}\n• ID: ${newSuggestion.id}\n\nVotre demande sera examinée par l'administration et vous recevrez une réponse dans les plus brefs délais.`);
         
     }, 2000);
 }
@@ -131,12 +119,12 @@ function handleSubmit(e) {
 function validateForm(data) {
     console.log('Validation des données:', data);
     
-    const requiredFields = ['courseName', 'courseCode', 'preferredDay', 'preferredTime', 'duration', 'frequency', 'roomType', 'justification'];
+    const requiredFields = ['preferredDay', 'preferredTime', 'duration', 'frequency', 'roomType', 'justification'];
     
     for (let field of requiredFields) {
         console.log(`Validation du champ ${field}:`, data[field]);
         if (!data[field] || data[field].trim() === '') {
-            alert(`❌ Le champ "${getFieldLabel(field)}" est obligatoire.`);
+            alert(` Le champ "${getFieldLabel(field)}" est obligatoire.`);
             const element = document.getElementById(field);
             if (element) {
                 element.focus();
@@ -150,11 +138,6 @@ function validateForm(data) {
     }
     
     // Validation spécifique
-    if (data.courseCode && !/^[A-Z]{2,4}-\d{3}$/.test(data.courseCode)) {
-        alert('❌ Le code du cours doit être au format "MATIERE-XXX" (ex: MATH-301)');
-        document.getElementById('courseCode').focus();
-        return false;
-    }
     
     return true;
 }
@@ -162,9 +145,6 @@ function validateForm(data) {
 // Obtenir le label d'un champ
 function getFieldLabel(fieldName) {
     const labels = {
-        'courseName': 'Nom du cours',
-        'courseCode': 'Code du cours',
-        'courseDescription': 'Description du cours',
         'preferredDay': 'Jour préféré',
         'preferredTime': 'Heure préférée',
         'duration': 'Durée',
@@ -195,17 +175,6 @@ function updatePreview() {
 
     let previewHTML = '<div class="preview-suggestion">';
     
-    if (data.courseName) {
-        previewHTML += `<h4>📚 ${data.courseName}</h4>`;
-    }
-    
-    if (data.courseCode) {
-        previewHTML += `<p><strong>Code:</strong> ${data.courseCode}</p>`;
-    }
-    
-    if (data.courseDescription) {
-        previewHTML += `<p><strong>Description:</strong> ${data.courseDescription}</p>`;
-    }
     
     if (data.preferredDay || data.preferredTime || data.duration) {
         previewHTML += '<p><strong>Planning proposé:</strong></p><ul>';
@@ -252,13 +221,13 @@ function saveDraft() {
     const hasData = Object.values(data).some(value => value && value.trim() !== '');
     
     if (!hasData) {
-        alert('❌ Aucune donnée à sauvegarder. Remplissez d\'abord le formulaire.');
+        alert(' Aucune donnée à sauvegarder. Remplissez d\'abord le formulaire.');
         return;
     }
     
     // Sauvegarder dans le localStorage
     localStorage.setItem('suggestionDraft', JSON.stringify(data));
-    alert('✅ Brouillon sauvegardé !');
+    alert(' Brouillon sauvegardé !');
 }
 
 // Charger le brouillon
@@ -280,9 +249,9 @@ function loadDraft() {
         });
         
         updatePreview();
-        alert('✅ Brouillon chargé !');
+        alert(' Brouillon chargé !');
     } else {
-        alert('❌ Aucun brouillon trouvé.');
+        alert(' Aucun brouillon trouvé.');
     }
 }
 
@@ -325,7 +294,7 @@ function getStatusText(status) {
 function viewSuggestion(id) {
     const suggestion = suggestions.find(s => s.id === id);
     if (suggestion) {
-        alert(`📋 Détails de la suggestion:\n\nNom: ${suggestion.name}\nCode: ${suggestion.code}\nStatut: ${getStatusText(suggestion.status)}\nDate: ${suggestion.date}\n\nCette fonctionnalité sera étendue pour afficher tous les détails.`);
+        alert(` Détails de la suggestion:\n\nNom: ${suggestion.name}\nCode: ${suggestion.code}\nStatut: ${getStatusText(suggestion.status)}\nDate: ${suggestion.date}\n\nCette fonctionnalité sera étendue pour afficher tous les détails.`);
     }
 }
 
@@ -334,9 +303,9 @@ function editSuggestion(id) {
     const suggestion = suggestions.find(s => s.id === id);
     if (suggestion) {
         if (suggestion.status === 'pending') {
-            alert('✏️ Modification de la suggestion en cours de développement...');
+            alert(' Modification de la suggestion en cours de développement...');
         } else {
-            alert('❌ Impossible de modifier une suggestion déjà traitée.');
+            alert(' Impossible de modifier une suggestion déjà traitée.');
         }
     }
 }
@@ -345,23 +314,18 @@ function editSuggestion(id) {
 function refreshHistory() {
     const loadingBtn = event.target;
     const originalText = loadingBtn.textContent;
-    loadingBtn.textContent = '🔄 Actualisation...';
+    loadingBtn.textContent = ' Actualisation...';
     loadingBtn.disabled = true;
 
     setTimeout(() => {
         updateHistory();
         loadingBtn.textContent = originalText;
         loadingBtn.disabled = false;
-        alert('✅ Historique actualisé !');
+        alert(' Historique actualisé !');
     }, 1000);
 }
 
-// Déconnexion
-function logout() {
-    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-        window.location.href = 'login.html';
-    }
-}
+// La fonction logout est maintenant gérée par auth.js
 
 // Animation d'entrée
 document.addEventListener('DOMContentLoaded', function() {
@@ -392,16 +356,16 @@ function saveSuggestionToServer(suggestion) {
         localStorage.setItem('allSuggestions', JSON.stringify(existingSuggestions));
         
         // Log pour debug
-        console.log('💾 Suggestion sauvegardée:', suggestion);
-        console.log('📊 Total des suggestions:', existingSuggestions.length);
+        console.log(' Suggestion sauvegardée:', suggestion);
+        console.log(' Total des suggestions:', existingSuggestions.length);
         
         // Simuler l'envoi vers un serveur (dans un vrai projet, ceci serait une requête HTTP)
-        console.log('🌐 Simulation d\'envoi vers le serveur...');
-        console.log('📤 Données envoyées:', JSON.stringify(suggestion, null, 2));
+        console.log(' Simulation d\'envoi vers le serveur...');
+        console.log(' Données envoyées:', JSON.stringify(suggestion, null, 2));
         
         return true;
     } catch (error) {
-        console.error('❌ Erreur lors de la sauvegarde:', error);
+        console.error(' Erreur lors de la sauvegarde:', error);
         return false;
     }
 }
@@ -410,10 +374,10 @@ function saveSuggestionToServer(suggestion) {
 function getAllSuggestions() {
     try {
         const suggestions = JSON.parse(localStorage.getItem('allSuggestions') || '[]');
-        console.log('📋 Toutes les suggestions récupérées:', suggestions);
+        console.log(' Toutes les suggestions récupérées:', suggestions);
         return suggestions;
     } catch (error) {
-        console.error('❌ Erreur lors de la récupération:', error);
+        console.error(' Erreur lors de la récupération:', error);
         return [];
     }
 }
@@ -422,12 +386,12 @@ function getAllSuggestions() {
 document.addEventListener('DOMContentLoaded', function() {
     const draft = localStorage.getItem('suggestionDraft');
     if (draft) {
-        if (confirm('📝 Un brouillon a été trouvé. Voulez-vous le charger ?')) {
+        if (confirm(' Un brouillon a été trouvé. Voulez-vous le charger ?')) {
             loadDraft();
         }
     }
     
     // Afficher le nombre total de suggestions
     const allSuggestions = getAllSuggestions();
-    console.log(`📊 Total des suggestions dans le système: ${allSuggestions.length}`);
+    console.log(` Total des suggestions dans le système: ${allSuggestions.length}`);
 });

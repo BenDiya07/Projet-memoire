@@ -1,0 +1,29 @@
+COPIEZ CE CONTENU DANS UN FICHIER NOMMÉ ".env" (dans le dossier backend/)
+
+==============================================================
+
+DB_NAME=university
+DB_PASSWORD=METTEZ_VOTRE_MOT_DE_PASSE_POSTGRES_ICI
+
+FLASK_ENV=development
+FLASK_DEBUG=1
+SECRET_KEY=dev-secret-key-2024
+JWT_SECRET_KEY=jwt-secret-key-2024
+CORS_ORIGINS=*
+SQL_ECHO=False
+
+==============================================================
+
+INSTRUCTIONS :
+
+1. Créer un NOUVEAU FICHIER nommé exactement ".env" (avec le point au début)
+2. Le placer dans le dossier "backend/"
+3. Copier le contenu ci-dessus dedans
+4. CHANGER "METTEZ_VOTRE_MOT_DE_PASSE_POSTGRES_ICI" par votre vrai mot de passe
+5. Sauvegarder
+6. Redémarrer le serveur
+
+IMPORTANT : Le fichier doit s'appeler ".env" (pas ".env.txt" !)
+
+==============================================================
+

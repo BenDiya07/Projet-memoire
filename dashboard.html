@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Gestion des Cours Universitaires</title>
+    <script>
+        // Appliquer le thème immédiatement pour éviter le flash
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const savedRole = localStorage.getItem('userRole') || 'student';
+            document.documentElement.classList.add(`theme-${savedTheme}`);
+            document.body.classList.add(`theme-${savedTheme}`);
+            document.documentElement.classList.add(`role-${savedRole}`);
+            document.body.classList.add(`role-${savedRole}`);
+        })();
+    </script>
     <link rel="stylesheet" href="dashboard-styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -11,7 +22,7 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-brand">
-            <h1>🎓 Université</h1>
+            <h1> Département de Math-info</h1>
         </div>
         <div class="nav-menu">
             <a href="dashboard.html" class="nav-link active">Dashboard</a>
@@ -36,8 +47,8 @@
             <!-- Widget 1: Cours planifiés -->
             <div class="widget">
                 <div class="widget-header">
-                    <h3>📚 Cours planifiés</h3>
-                    <span class="widget-icon">📊</span>
+                    <h3> Cours planifiés</h3>
+                    <span class="widget-icon"></span>
                 </div>
                 <div class="widget-content">
                     <div class="metric-value">127</div>
@@ -49,8 +60,8 @@
             <!-- Widget 2: Conflits détectés -->
             <div class="widget">
                 <div class="widget-header">
-                    <h3>⚠️ Conflits détectés</h3>
-                    <span class="widget-icon">🔍</span>
+                    <h3> Conflits détectés</h3>
+                    <span class="widget-icon"></span>
                 </div>
                 <div class="widget-content">
                     <div class="metric-value">3</div>
@@ -62,8 +73,8 @@
             <!-- Widget 3: Disponibilité profs -->
             <div class="widget">
                 <div class="widget-header">
-                    <h3>👨‍🏫 Disponibilité profs</h3>
-                    <span class="widget-icon">📈</span>
+                    <h3> Disponibilité profs</h3>
+                    <span class="widget-icon"></span>
                 </div>
                 <div class="widget-content">
                     <div class="metric-value">78%</div>
@@ -75,8 +86,8 @@
             <!-- Widget 4: Étudiants impactés -->
             <div class="widget">
                 <div class="widget-header">
-                    <h3>👥 Étudiants impactés</h3>
-                    <span class="widget-icon">🎯</span>
+                    <h3>   Étudiants impactés</h3>
+                    <span class="widget-icon"></span>
                 </div>
                 <div class="widget-content">
                     <div class="metric-value">45</div>
@@ -91,7 +102,7 @@
             <!-- Graphique en barres -->
             <div class="chart-container">
                 <div class="chart-header">
-                    <h3>📊 Cours par jour de la semaine</h3>
+                    <h3> Cours par jour de la semaine</h3>
                 </div>
                 <div class="chart-content">
                     <canvas id="coursesChart"></canvas>
@@ -101,7 +112,7 @@
             <!-- Jauge d'occupation -->
             <div class="chart-container">
                 <div class="chart-header">
-                    <h3>🎯 Taux d'occupation des salles</h3>
+                    <h3> Taux d'occupation des salles</h3>
                 </div>
                 <div class="chart-content">
                     <div class="gauge-container">
@@ -122,7 +133,7 @@
         <div class="calendar-section">
             <div class="calendar-container">
                 <div class="calendar-header">
-                    <h3>📅 Aperçu du calendrier</h3>
+                    <h3> Aperçu du calendrier</h3>
                     <div class="calendar-nav">
                         <button onclick="previousMonth()">‹</button>
                         <span id="currentMonth"></span>
@@ -138,18 +149,18 @@
 
             <!-- Accès rapide -->
             <div class="quick-actions">
-                <h3>🚀 Actions rapides</h3>
+                <h3> Actions rapides</h3>
                 <div class="action-buttons">
                     <a href="gestion.html" class="action-btn primary">
-                        <span class="btn-icon">⚙️</span>
+                        <span class="btn-icon"></span>
                         Gestion des plannings
                     </a>
                     <a href="emploi-temps.html" class="action-btn secondary">
-                        <span class="btn-icon">📅</span>
+                        <span class="btn-icon"></span>
                         Voir emploi du temps
                     </a>
                     <button class="action-btn tertiary" onclick="generateReport()">
-                        <span class="btn-icon">📊</span>
+                        <span class="btn-icon"></span>
                         Générer rapport
                     </button>
                 </div>
@@ -159,7 +170,7 @@
         <!-- Gestion des suggestions -->
         <div class="suggestions-management">
             <div class="suggestions-header">
-                <h3>💡 Gestion des suggestions de cours</h3>
+                <h3> Gestion des suggestions de cours</h3>
                 <div class="suggestions-stats">
                     <span class="stat-badge pending">3 en attente</span>
                     <span class="stat-badge approved">5 approuvées</span>
@@ -185,15 +196,15 @@
                     </div>
                     <div class="suggestion-actions">
                         <button class="btn-success" onclick="approveSuggestion(1)">
-                            <span class="btn-icon">✅</span>
+                            <span class="btn-icon"></span>
                             Approuver
                         </button>
                         <button class="btn-danger" onclick="rejectSuggestion(1)">
-                            <span class="btn-icon">❌</span>
+                            <span class="btn-icon"></span>
                             Rejeter
                         </button>
                         <button class="btn-secondary" onclick="viewSuggestionDetails(1)">
-                            <span class="btn-icon">👁️</span>
+                            <span class="btn-icon"></span>
                             Voir détails
                         </button>
                     </div>
@@ -216,15 +227,15 @@
                     </div>
                     <div class="suggestion-actions">
                         <button class="btn-success" onclick="approveSuggestion(2)">
-                            <span class="btn-icon">✅</span>
+                            <span class="btn-icon"></span>
                             Approuver
                         </button>
                         <button class="btn-danger" onclick="rejectSuggestion(2)">
-                            <span class="btn-icon">❌</span>
+                            <span class="btn-icon"></span>
                             Rejeter
                         </button>
                         <button class="btn-secondary" onclick="viewSuggestionDetails(2)">
-                            <span class="btn-icon">👁️</span>
+                            <span class="btn-icon"></span>
                             Voir détails
                         </button>
                     </div>
@@ -247,15 +258,15 @@
                     </div>
                     <div class="suggestion-actions">
                         <button class="btn-success" onclick="approveSuggestion(3)">
-                            <span class="btn-icon">✅</span>
+                            <span class="btn-icon"></span>
                             Approuver
                         </button>
                         <button class="btn-danger" onclick="rejectSuggestion(3)">
-                            <span class="btn-icon">❌</span>
+                            <span class="btn-icon"></span>
                             Rejeter
                         </button>
                         <button class="btn-secondary" onclick="viewSuggestionDetails(3)">
-                            <span class="btn-icon">👁️</span>
+                            <span class="btn-icon"></span>
                             Voir détails
                         </button>
                     </div>
@@ -264,6 +275,8 @@
         </div>
     </main>
 
+    <script src="auth.js"></script>
+    <script src="theme.js"></script>
     <script src="dashboard-script.js"></script>
 </body>
 </html>

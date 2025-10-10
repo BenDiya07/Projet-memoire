@@ -4,13 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suggestion de cours - Professeur</title>
+    <script>
+        // Appliquer le thème immédiatement pour éviter le flash
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const savedRole = localStorage.getItem('userRole') || 'student';
+            document.documentElement.classList.add(`theme-${savedTheme}`);
+            document.body.classList.add(`theme-${savedTheme}`);
+            document.documentElement.classList.add(`role-${savedRole}`);
+            document.body.classList.add(`role-${savedRole}`);
+        })();
+    </script>
     <link rel="stylesheet" href="dashboard-styles.css">
 </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-brand">
-            <h1>🎓 Université</h1>
+            <h1> Département de Math-Info</h1>
         </div>
         <div class="nav-menu">
             <a href="gestion.html" class="nav-link">Gestion</a>
@@ -25,7 +36,7 @@
     <!-- Contenu principal -->
     <main class="main-content">
         <div class="page-header">
-            <h2>💡 Suggestion de cours</h2>
+            <h2> Suggestion de cours</h2>
             <p>Proposez l'enregistrement de nouveaux cours pour votre planning</p>
         </div>
 
@@ -33,33 +44,15 @@
         <div class="suggestion-container">
             <div class="suggestion-form">
                 <div class="form-header">
-                    <h3>📝 Nouvelle suggestion de cours</h3>
+                    <h3> Nouvelle suggestion de cours</h3>
                     <p>Remplissez ce formulaire pour proposer l'ajout d'un nouveau cours</p>
                 </div>
 
                 <form id="suggestionForm">
-                    <!-- Informations du cours -->
-                    <div class="form-section">
-                        <h4>📚 Informations du cours</h4>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="courseName">Nom du cours :</label>
-                                <input type="text" id="courseName" name="courseName" required placeholder="Ex: Mathématiques Avancées">
-                            </div>
-                            <div class="form-group">
-                                <label for="courseCode">Code du cours :</label>
-                                <input type="text" id="courseCode" name="courseCode" required placeholder="Ex: MATH-301">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="courseDescription">Description du cours :</label>
-                            <textarea id="courseDescription" name="courseDescription" rows="3" placeholder="Décrivez le contenu et les objectifs du cours..."></textarea>
-                        </div>
-                    </div>
 
                     <!-- Planning proposé -->
                     <div class="form-section">
-                        <h4>📅 Planning proposé</h4>
+                        <h4> Planning proposé</h4>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="preferredDay">Jour préféré :</label>
@@ -103,7 +96,7 @@
 
                     <!-- Préférences de salle -->
                     <div class="form-section">
-                        <h4>🏢 Préférences de salle</h4>
+                        <h4> Préférences de salle</h4>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="roomType">Type de salle :</label>
@@ -154,7 +147,7 @@
 
                     <!-- Justification -->
                     <div class="form-section">
-                        <h4>💭 Justification</h4>
+                        <h4> Justification</h4>
                         <div class="form-group">
                             <label for="justification">Pourquoi ce cours est-il nécessaire ?</label>
                             <textarea id="justification" name="justification" rows="4" required placeholder="Expliquez l'importance de ce cours, son impact sur les étudiants, et pourquoi il devrait être ajouté au planning..."></textarea>
@@ -176,7 +169,7 @@
 
             <!-- Aperçu de la suggestion -->
             <div class="suggestion-preview">
-                <h3>👁️ Aperçu de votre suggestion</h3>
+                <h3> Aperçu de votre suggestion</h3>
                 <div class="preview-content" id="previewContent">
                     <p class="preview-placeholder">Remplissez le formulaire pour voir l'aperçu...</p>
                 </div>
@@ -186,8 +179,8 @@
         <!-- Historique des suggestions -->
         <div class="suggestions-history">
             <div class="history-header">
-                <h3>📋 Mes suggestions précédentes</h3>
-                <button class="btn-small" onclick="refreshHistory()">🔄 Actualiser</button>
+                <h3> Mes suggestions précédentes</h3>
+                <button class="btn-small" onclick="refreshHistory()"> Actualiser</button>
             </div>
             <div class="history-content">
                 <div class="suggestion-item">
@@ -197,8 +190,8 @@
                         <p><strong>Date:</strong> 15 Janvier 2024</p>
                     </div>
                     <div class="suggestion-actions">
-                        <button class="btn-icon-small" onclick="viewSuggestion(1)" title="Voir">👁️</button>
-                        <button class="btn-icon-small" onclick="editSuggestion(1)" title="Modifier">✏️</button>
+                        <button class="btn-icon-small" onclick="viewSuggestion(1)" title="Voir"></button>
+                        <button class="btn-icon-small" onclick="editSuggestion(1)" title="Modifier"></button>
                     </div>
                 </div>
                 <div class="suggestion-item">
@@ -208,8 +201,8 @@
                         <p><strong>Date:</strong> 10 Janvier 2024</p>
                     </div>
                     <div class="suggestion-actions">
-                        <button class="btn-icon-small" onclick="viewSuggestion(2)" title="Voir">👁️</button>
-                        <button class="btn-icon-small" onclick="editSuggestion(2)" title="Modifier">✏️</button>
+                        <button class="btn-icon-small" onclick="viewSuggestion(2)" title="Voir"></button>
+                        <button class="btn-icon-small" onclick="editSuggestion(2)" title="Modifier"></button>
                     </div>
                 </div>
                 <div class="suggestion-item">
@@ -219,14 +212,16 @@
                         <p><strong>Date:</strong> 5 Janvier 2024</p>
                     </div>
                     <div class="suggestion-actions">
-                        <button class="btn-icon-small" onclick="viewSuggestion(3)" title="Voir">👁️</button>
-                        <button class="btn-icon-small" onclick="editSuggestion(3)" title="Modifier">✏️</button>
+                        <button class="btn-icon-small" onclick="viewSuggestion(3)" title="Voir"></button>
+                        <button class="btn-icon-small" onclick="editSuggestion(3)" title="Modifier"></button>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
+    <script src="auth.js"></script>
+    <script src="theme.js"></script>
     <script src="suggestion-cours-script.js"></script>
 </body>
 </html>

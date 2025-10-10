@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Simple - Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .success {
+            color: green;
+            margin-top: 10px;
+        }
+        .debug {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Connexion Simple - Test</h2>
+        
+        <div class="debug" id="debug-info">
+            Chargement...
+        </div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email :</label>
+                <input type="email" id="email" name="email" required placeholder="votre.email@universite.fr">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Mot de passe :</label>
+                <input type="password" id="password" name="password" required placeholder="Votre mot de passe">
+            </div>
+            
+            <div class="form-group">
+                <label for="role">Rôle :</label>
+                <select id="role" name="role" required>
+                    <option value="student">Étudiant</option>
+                    <option value="professor">Professeur</option>
+                    <option value="admin">Administrateur</option>
+                </select>
+            </div>
+            
+            <button type="submit">Se connecter</button>
+        </form>
+        
+        <div id="result"></div>
+        
+        <div style="margin-top: 20px;">
+            <h3>Comptes de test :</h3>
+            <p><strong>Admin:</strong> admin@univ.fr / admin123</p>
+            <p><strong>Professeur:</strong> prof@univ.fr / prof123</p>
+            <p><strong>Étudiant:</strong> etudiant@univ.fr / etudiant123</p>
+        </div>
+    </div>
+
+    <script>
+        // Debug info
+        function updateDebugInfo() {
+            const debugDiv = document.getElementById('debug-info');
+            const info = [
+                `AuthManager: ${typeof authManager}`,
+                `ThemeManager: ${typeof themeManager}`,
+                `LocalStorage theme: ${localStorage.getItem('theme')}`,
+                `LocalStorage userRole: ${localStorage.getItem('userRole')}`,
+                `Current user: ${localStorage.getItem('currentUser')}`
+            ];
+            debugDiv.innerHTML = info.join('<br>');
+        }
+        
+        // Gestion du formulaire de connexion
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDebugInfo();
+            
+            const loginForm = document.getElementById('loginForm');
+            const resultDiv = document.getElementById('result');
+            
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const role = document.getElementById('role').value;
+                
+                resultDiv.innerHTML = '<div>Connexion en cours...</div>';
+                
+                try {
+                    if (typeof authManager === 'undefined') {
+                        resultDiv.innerHTML = '<div class="error">Erreur: AuthManager non disponible</div>';
+                        return;
+                    }
+                    
+                    const result = authManager.login(email, password, role);
+                    
+                    if (result.success) {
+                        resultDiv.innerHTML = `<div class="success">Connexion réussie ! Bienvenue ${result.user.name}</div>`;
+                        updateDebugInfo();
+                        
+                        // Redirection après 2 secondes
+                        setTimeout(() => {
+                            const defaultPage = authManager.getDefaultPage(role);
+                            window.location.href = defaultPage;
+                        }, 2000);
+                    } else {
+                        resultDiv.innerHTML = `<div class="error">Erreur: ${result.message}</div>`;
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `<div class="error">Erreur JavaScript: ${error.message}</div>`;
+                    console.error('Erreur de connexion:', error);
+                }
+            });
+        });
+        
+        // Auto-remplissage pour les comptes de test
+        document.addEventListener('click', function(e) {
+            if (e.target.tagName === 'P' && e.target.textContent.includes('@univ.fr')) {
+                const text = e.target.textContent;
+                const email = text.split(' / ')[0].split(': ')[1];
+                const password = text.split(' / ')[1];
+                const role = text.includes('Admin') ? 'admin' : text.includes('Professeur') ? 'professor' : 'student';
+                
+                document.getElementById('email').value = email;
+                document.getElementById('password').value = password;
+                document.getElementById('role').value = role;
+            }
+        });
+    </script>
+    
+    <!-- Charger les scripts de l'application -->
+    <script src="auth.js"></script>
+    <script src="theme.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+

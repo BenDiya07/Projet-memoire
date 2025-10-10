@@ -4,13 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon emploi du temps - Étudiant</title>
+    <script>
+        // Appliquer le thème immédiatement pour éviter le flash
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const savedRole = localStorage.getItem('userRole') || 'student';
+            document.documentElement.classList.add(`theme-${savedTheme}`);
+            document.body.classList.add(`theme-${savedTheme}`);
+            document.documentElement.classList.add(`role-${savedRole}`);
+            document.body.classList.add(`role-${savedRole}`);
+        })();
+    </script>
     <link rel="stylesheet" href="dashboard-styles.css">
 </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-brand">
-            <h1>🎓 Université</h1>
+            <h1>Département de Math-Info</h1>
         </div>
         <div class="nav-menu">
             <a href="emploi-temps.html" class="nav-link active">Mon emploi du temps</a>
@@ -24,7 +35,7 @@
     <!-- Contenu principal -->
     <main class="main-content">
         <div class="page-header">
-            <h2>📅 Mon emploi du temps</h2>
+            <h2> Mon emploi du temps</h2>
             <p>Consultez votre planning de cours et vos horaires</p>
         </div>
 
@@ -32,16 +43,16 @@
         <div class="view-controls">
             <div class="view-selector">
                 <button class="view-btn active" data-view="weekly" onclick="switchView('weekly')">
-                    📅 Vue hebdomadaire
+                     Vue hebdomadaire
                 </button>
                 <button class="view-btn" data-view="daily" onclick="switchView('daily')">
-                    📋 Vue journalière
+                     Vue journalière
                 </button>
                 <button class="view-btn" data-view="room" onclick="switchView('room')">
-                    🏢 Vue par salle
+                     Vue par salle
                 </button>
                 <button class="view-btn" data-view="professor" onclick="switchView('professor')">
-                    👨‍🏫 Vue par professeur
+                     Vue par professeur
                 </button>
             </div>
             <div class="date-navigation">
@@ -148,7 +159,7 @@
                             <div class="course-title">Mathématiques</div>
                             <div class="course-details">Dr. Martin - A101</div>
                             <div class="course-time">09:00-11:00</div>
-                            <div class="conflict-indicator">⚠️ Conflit</div>
+                            <div class="conflict-indicator"> Conflit</div>
                         </div>
                     </div>
                 </div>
@@ -219,7 +230,7 @@
             <div class="room-grid">
                 <div class="room-card">
                     <div class="room-header">
-                        <h4>🏢 Salle A101</h4>
+                        <h4> Salle A101</h4>
                         <span class="room-status available">Disponible</span>
                     </div>
                     <div class="room-schedule">
@@ -240,7 +251,7 @@
                 
                 <div class="room-card">
                     <div class="room-header">
-                        <h4>🏢 Salle B205</h4>
+                        <h4> Salle B205</h4>
                         <span class="room-status occupied">Occupée</span>
                     </div>
                     <div class="room-schedule">
@@ -261,7 +272,7 @@
                 
                 <div class="room-card">
                     <div class="room-header">
-                        <h4>🏢 Salle C301</h4>
+                        <h4> Salle C301</h4>
                         <span class="room-status conflict">Conflit</span>
                     </div>
                     <div class="room-schedule">
@@ -271,7 +282,7 @@
                         </div>
                         <div class="room-slot conflict">
                             <span class="time">10:30-12:30</span>
-                            <span class="course">⚠️ Conflit détecté</span>
+                            <span class="course"> Conflit détecté</span>
                         </div>
                     </div>
                 </div>
@@ -283,7 +294,7 @@
             <div class="professor-grid">
                 <div class="professor-card">
                     <div class="professor-header">
-                        <h4>👨‍🏫 Dr. Martin</h4>
+                        <h4> Dr. Martin</h4>
                         <span class="professor-status active">Actif</span>
                     </div>
                     <div class="professor-schedule">
@@ -307,7 +318,7 @@
                 
                 <div class="professor-card">
                     <div class="professor-header">
-                        <h4>👨‍🏫 Dr. Dubois</h4>
+                        <h4> Dr. Dubois</h4>
                         <span class="professor-status active">Actif</span>
                     </div>
                     <div class="professor-schedule">
@@ -326,7 +337,7 @@
                 
                 <div class="professor-card">
                     <div class="professor-header">
-                        <h4>👨‍🏫 Dr. Leroy</h4>
+                        <h4> Dr. Leroy</h4>
                         <span class="professor-status conflict">Conflit</span>
                     </div>
                     <div class="professor-schedule">
@@ -338,7 +349,7 @@
                         <div class="prof-slot conflict">
                             <span class="day">Mercredi</span>
                             <span class="time">10:30-12:30</span>
-                            <span class="course">⚠️ Conflit de salle</span>
+                            <span class="course"> Conflit de salle</span>
                         </div>
                     </div>
                 </div>
@@ -348,20 +359,22 @@
         <!-- Actions rapides -->
         <div class="schedule-actions">
             <button class="btn-primary" onclick="printSchedule()">
-                <span class="btn-icon">🖨️</span>
+                <span class="btn-icon"></span>
                 Imprimer mon emploi du temps
             </button>
             <button class="btn-secondary" onclick="exportSchedule()">
-                <span class="btn-icon">📥</span>
+                <span class="btn-icon"></span>
                 Télécharger en PDF
             </button>
             <button class="btn-secondary" onclick="shareSchedule()">
-                <span class="btn-icon">📤</span>
+                <span class="btn-icon"></span>
                 Partager mon planning
             </button>
         </div>
     </main>
 
+    <script src="auth.js"></script>
+    <script src="theme.js"></script>
     <script src="emploi-temps-script.js"></script>
 </body>
 </html>

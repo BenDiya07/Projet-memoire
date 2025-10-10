@@ -41,7 +41,54 @@ let courses = [
 document.addEventListener('DOMContentLoaded', function() {
     updateTable();
     setupEventListeners();
+    hideActionsForProfessors();
 });
+
+// Masquer les actions pour les professeurs
+function hideActionsForProfessors() {
+    const userRole = localStorage.getItem('userRole');
+    
+    if (userRole === 'professor') {
+        // Masquer la colonne Actions dans le tableau
+        const table = document.querySelector('.data-table');
+        if (table) {
+            const headerRow = table.querySelector('thead tr');
+            const actionHeader = headerRow.querySelector('th:last-child');
+            if (actionHeader) {
+                actionHeader.style.display = 'none';
+            }
+            
+            // Masquer les boutons d'action dans chaque ligne
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const actionCell = row.querySelector('td:last-child');
+                if (actionCell) {
+                    actionCell.style.display = 'none';
+                }
+            });
+        }
+        
+        // Masquer les boutons d'action dans la barre d'action
+        const actionBar = document.querySelector('.action-bar');
+        if (actionBar) {
+            const addCourseBtn = actionBar.querySelector('button[onclick*="addCourseModal"]');
+            const addProfessorBtn = actionBar.querySelector('button[onclick*="addProfessorModal"]');
+            const addRoomBtn = actionBar.querySelector('button[onclick*="addRoomModal"]');
+            const checkConflictsBtn = actionBar.querySelector('button[onclick*="checkConflicts"]');
+            
+            if (addCourseBtn) addCourseBtn.style.display = 'none';
+            if (addProfessorBtn) addProfessorBtn.style.display = 'none';
+            if (addRoomBtn) addRoomBtn.style.display = 'none';
+            if (checkConflictsBtn) checkConflictsBtn.style.display = 'none';
+        }
+        
+        // Masquer les actions du tableau
+        const tableActions = document.querySelector('.table-actions');
+        if (tableActions) {
+            tableActions.style.display = 'none';
+        }
+    }
+}
 
 // Configuration des événements
 function setupEventListeners() {
@@ -63,30 +110,7 @@ function setupEventListeners() {
 
 // Mise à jour du tableau
 function updateTable() {
-    const tbody = document.getElementById('coursesTableBody');
-    if (!tbody) return;
-
-    tbody.innerHTML = '';
-
-    courses.forEach(course => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${course.id.toString().padStart(3, '0')}</td>
-            <td>${course.subject}</td>
-            <td>${course.professor}</td>
-            <td>${course.room}</td>
-            <td>${course.day}</td>
-            <td>${course.time}</td>
-            <td>${course.duration}</td>
-            <td>${course.students}</td>
-            <td><span class="status ${course.status}">${getStatusText(course.status)}</span></td>
-            <td>
-                <button class="btn-icon-small" onclick="editCourse(${course.id})" title="Modifier">✏️</button>
-                <button class="btn-icon-small" onclick="deleteCourse(${course.id})" title="Supprimer">🗑️</button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
+    updateTableWithData(courses);
 }
 
 // Obtenir le texte du statut
@@ -128,9 +152,20 @@ function updateTableWithData(data) {
     if (!tbody) return;
 
     tbody.innerHTML = '';
+    const userRole = localStorage.getItem('userRole');
 
     data.forEach(course => {
         const row = document.createElement('tr');
+        
+        // Actions selon le rôle
+        let actionsHTML = '';
+        if (userRole === 'admin') {
+            actionsHTML = `
+                <button class="btn-icon-small" onclick="editCourse(${course.id})" title="Modifier">✏️</button>
+                <button class="btn-icon-small" onclick="deleteCourse(${course.id})" title="Supprimer">🗑️</button>
+            `;
+        }
+        
         row.innerHTML = `
             <td>${course.id.toString().padStart(3, '0')}</td>
             <td>${course.subject}</td>
@@ -141,13 +176,31 @@ function updateTableWithData(data) {
             <td>${course.duration}</td>
             <td>${course.students}</td>
             <td><span class="status ${course.status}">${getStatusText(course.status)}</span></td>
-            <td>
-                <button class="btn-icon-small" onclick="editCourse(${course.id})" title="Modifier">✏️</button>
-                <button class="btn-icon-small" onclick="deleteCourse(${course.id})" title="Supprimer">🗑️</button>
-            </td>
+            <td>${actionsHTML}</td>
         `;
         tbody.appendChild(row);
     });
+    
+    // Masquer la colonne Actions si c'est un professeur
+    if (userRole === 'professor') {
+        const table = document.querySelector('.data-table');
+        if (table) {
+            const headerRow = table.querySelector('thead tr');
+            const actionHeader = headerRow.querySelector('th:last-child');
+            if (actionHeader) {
+                actionHeader.style.display = 'none';
+            }
+            
+            // Masquer les cellules d'action dans chaque ligne
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const actionCell = row.querySelector('td:last-child');
+                if (actionCell) {
+                    actionCell.style.display = 'none';
+                }
+            });
+        }
+    }
 }
 
 // Gestion des modals
@@ -207,7 +260,7 @@ function addCourse() {
     const hasConflict = checkForConflicts(newCourse);
     if (hasConflict) {
         newCourse.status = 'conflict';
-        alert('⚠️ Conflit détecté ! Le cours a été ajouté mais nécessite une attention particulière.');
+        alert(' Conflit détecté ! Le cours a été ajouté mais nécessite une attention particulière.');
     }
 
     courses.push(newCourse);
@@ -215,7 +268,7 @@ function addCourse() {
     closeModal('addCourseModal');
     form.reset();
     
-    alert('✅ Cours ajouté avec succès !');
+    alert(' Cours ajouté avec succès !');
 }
 
 // Vérifier les conflits
@@ -251,9 +304,9 @@ function checkConflicts() {
     updateTable();
     
     if (conflicts.length > 0) {
-        alert(`⚠️ ${conflicts.length} conflit(s) détecté(s) :\n\n${conflicts.map(c => `- ${c.subject} (${c.room}, ${c.day} ${c.time})`).join('\n')}`);
+        alert(` ${conflicts.length} conflit(s) détecté(s) :\n\n${conflicts.map(c => `- ${c.subject} (${c.room}, ${c.day} ${c.time})`).join('\n')}`);
     } else {
-        alert('✅ Aucun conflit détecté !');
+        alert(' Aucun conflit détecté !');
     }
 }
 
@@ -266,7 +319,7 @@ function editCourse(courseId) {
     if (newSubject && newSubject !== course.subject) {
         course.subject = newSubject;
         updateTable();
-        alert('✅ Cours modifié avec succès !');
+        alert(' Cours modifié avec succès !');
     }
 }
 
@@ -278,7 +331,7 @@ function deleteCourse(courseId) {
     if (confirm(`Êtes-vous sûr de vouloir supprimer le cours "${course.subject}" ?`)) {
         courses = courses.filter(c => c.id !== courseId);
         updateTable();
-        alert('✅ Cours supprimé avec succès !');
+        alert(' Cours supprimé avec succès !');
     }
 }
 
@@ -299,23 +352,18 @@ function refreshData() {
     // Simulation d'une actualisation
     const loadingBtn = event.target;
     const originalText = loadingBtn.textContent;
-    loadingBtn.textContent = '🔄 Actualisation...';
+    loadingBtn.textContent = ' Actualisation...';
     loadingBtn.disabled = true;
 
     setTimeout(() => {
         updateTable();
         loadingBtn.textContent = originalText;
         loadingBtn.disabled = false;
-        alert('✅ Données actualisées !');
+        alert(' Données actualisées !');
     }, 1000);
 }
 
-// Déconnexion
-function logout() {
-    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-        window.location.href = 'login.html';
-    }
-}
+// La fonction logout est maintenant gérée par auth.js
 
 // Animation d'entrée pour les éléments
 document.addEventListener('DOMContentLoaded', function() {
