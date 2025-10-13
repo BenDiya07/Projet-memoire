@@ -193,10 +193,10 @@ function loadSuggestions() {
     try {
         const storedSuggestions = JSON.parse(localStorage.getItem('allSuggestions') || '[]');
         suggestions = storedSuggestions;
-        console.log('📋 Suggestions chargées:', suggestions);
+        console.log('Suggestions chargees:', suggestions);
         updateSuggestionsDisplay();
     } catch (error) {
-        console.error('❌ Erreur lors du chargement des suggestions:', error);
+        console.error('Erreur lors du chargement des suggestions:', error);
         // Suggestions par défaut en cas d'erreur
         suggestions = [
             {

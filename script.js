@@ -82,13 +82,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Le rôle est maintenant dans result.user.role
             const userRole = result.user.role.name || result.user.role;
             
-            alert(`✅ Connexion réussie !\n\nBienvenue ${result.user.name || result.user.full_name}\nRôle: ${userRole}`);
+            alert(`Connexion reussie !\n\nBienvenue ${result.user.name || result.user.full_name}\nRole: ${userRole}`);
             
             // Redirection vers la page par défaut du rôle (détecté automatiquement)
             const defaultPage = authManager.getDefaultPage(userRole);
             window.location.href = defaultPage;
         } else {
-            alert(`❌ ${result.message}\n\nVérifiez vos identifiants.`);
+            alert(`${result.message}\n\nVerifiez vos identifiants.`);
         }
         
         return false;
@@ -152,18 +152,18 @@ document.addEventListener('DOMContentLoaded', function() {
             studentId: studentId || null
         };
         
-        console.log('📝 Données d\'inscription:', userData);
+        console.log('Donnees d\'inscription:', userData);
         
         try {
             const result = await authManager.register(userData);
-            console.log('📊 Résultat de l\'inscription:', result);
+            console.log('Resultat de l\'inscription:', result);
             
             // Restaurer le bouton
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
             
             if (result.success) {
-                alert(`✅ Inscription réussie !\n\nNom: ${firstName} ${lastName}\nEmail: ${email}\nRôle: ${role}\n${studentId ? `Numéro étudiant: ${studentId}` : ''}\n\nVous pouvez maintenant vous connecter.`);
+                alert(`Inscription reussie !\n\nNom: ${firstName} ${lastName}\nEmail: ${email}\nRole: ${role}\n${studentId ? `Numero etudiant: ${studentId}` : ''}\n\nVous pouvez maintenant vous connecter.`);
                 
                 // Réinitialiser le formulaire
                 registerForm.reset();
@@ -171,14 +171,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Basculer vers l'onglet de connexion
                 document.querySelector('[data-tab="login"]').click();
             } else {
-                alert(`❌ Erreur d'inscription: ${result.message}`);
+                alert(`Erreur d'inscription: ${result.message}`);
             }
         } catch (error) {
             // Restaurer le bouton
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
             
-            alert(`❌ Erreur d'inscription: ${error.message}`);
+            alert(`Erreur d'inscription: ${error.message}`);
         }
     });
 });

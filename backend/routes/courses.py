@@ -1,4 +1,4 @@
-"""
+﻿"""
 Routes pour la gestion des cours
 """
 
@@ -11,10 +11,10 @@ from datetime import datetime, time
 courses_bp = Blueprint('courses', __name__, url_prefix='/api/courses')
 
 # ============================================
-# HELPER: Vérifier les permissions admin/prof
+# HELPER: VÃ©rifier les permissions admin/prof
 # ============================================
 def require_role(allowed_roles):
-    """Décorateur pour vérifier les rôles"""
+    """DÃ©corateur pour vÃ©rifier les rÃ´les"""
     def decorator(f):
         def wrapper(*args, **kwargs):
             claims = get_jwt()
@@ -23,7 +23,7 @@ def require_role(allowed_roles):
             if user_role not in allowed_roles:
                 return jsonify({
                     'success': False,
-                    'message': 'Accès refusé'
+                    'message': 'AccÃ¨s refusÃ©'
                 }), 403
             
             return f(*args, **kwargs)
@@ -90,19 +90,19 @@ def get_courses():
         }), 500
 
 # ============================================
-# DÉTAILS D'UN COURS
+# DÃ‰TAILS D'UN COURS
 # ============================================
 @courses_bp.route('/<int:course_id>', methods=['GET'])
 @jwt_required()
 def get_course(course_id):
-    """Obtenir les détails d'un cours"""
+    """Obtenir les dÃ©tails d'un cours"""
     try:
         course = Course.query.get(course_id)
         
         if not course:
             return jsonify({
                 'success': False,
-                'message': 'Cours non trouvé'
+                'message': 'Cours non trouvÃ©'
             }), 404
         
         return jsonify({
@@ -117,19 +117,19 @@ def get_course(course_id):
         }), 500
 
 # ============================================
-# CRÉER UN COURS (Admin seulement)
+# CRÃ‰ER UN COURS (Admin seulement)
 # ============================================
 @courses_bp.route('', methods=['POST'])
 @jwt_required()
 def create_course():
-    """Créer un nouveau cours"""
+    """CrÃ©er un nouveau cours"""
     try:
-        # Vérifier les permissions
+        # VÃ©rifier les permissions
         claims = get_jwt()
         if claims.get('role') != 'admin':
             return jsonify({
                 'success': False,
-                'message': 'Accès refusé'
+                'message': 'AccÃ¨s refusÃ©'
             }), 403
         
         data = request.get_json()
@@ -144,15 +144,15 @@ def create_course():
                 'message': f'Champs manquants: {", ".join(missing_fields)}'
             }), 400
         
-        # Vérifier si le code de cours existe déjà
+        # VÃ©rifier si le code de cours existe dÃ©jÃ 
         existing = Course.query.filter_by(course_code=data['course_code']).first()
         if existing:
             return jsonify({
                 'success': False,
-                'message': 'Un cours avec ce code existe déjà'
+                'message': 'Un cours avec ce code existe dÃ©jÃ '
             }), 409
         
-        # Créer le cours
+        # CrÃ©er le cours
         new_course = Course(
             course_code=data['course_code'],
             course_name=data['course_name'],
@@ -183,7 +183,7 @@ def create_course():
         
         return jsonify({
             'success': True,
-            'message': 'Cours créé avec succès',
+            'message': 'Cours crÃ©Ã© avec succÃ¨s',
             'course': new_course.to_dict(include_professor=True)
         }), 201
         
@@ -202,12 +202,12 @@ def create_course():
 def update_course(course_id):
     """Modifier un cours"""
     try:
-        # Vérifier les permissions
+        # VÃ©rifier les permissions
         claims = get_jwt()
         if claims.get('role') != 'admin':
             return jsonify({
                 'success': False,
-                'message': 'Accès refusé'
+                'message': 'AccÃ¨s refusÃ©'
             }), 403
         
         course = Course.query.get(course_id)
@@ -215,13 +215,13 @@ def update_course(course_id):
         if not course:
             return jsonify({
                 'success': False,
-                'message': 'Cours non trouvé'
+                'message': 'Cours non trouvÃ©'
             }), 404
         
         data = request.get_json()
         old_values = course.to_dict()
         
-        # Mettre à jour les champs
+        # Mettre Ã  jour les champs
         if 'course_name' in data:
             course.course_name = data['course_name']
         if 'description' in data:
@@ -257,7 +257,7 @@ def update_course(course_id):
         
         return jsonify({
             'success': True,
-            'message': 'Cours modifié avec succès',
+            'message': 'Cours modifiÃ© avec succÃ¨s',
             'course': course.to_dict(include_professor=True, include_schedules=True)
         }), 200
         
@@ -276,12 +276,12 @@ def update_course(course_id):
 def delete_course(course_id):
     """Supprimer un cours"""
     try:
-        # Vérifier les permissions
+        # VÃ©rifier les permissions
         claims = get_jwt()
         if claims.get('role') != 'admin':
             return jsonify({
                 'success': False,
-                'message': 'Accès refusé'
+                'message': 'AccÃ¨s refusÃ©'
             }), 403
         
         course = Course.query.get(course_id)
@@ -289,7 +289,7 @@ def delete_course(course_id):
         if not course:
             return jsonify({
                 'success': False,
-                'message': 'Cours non trouvé'
+                'message': 'Cours non trouvÃ©'
             }), 404
         
         old_values = course.to_dict()
@@ -311,7 +311,7 @@ def delete_course(course_id):
         
         return jsonify({
             'success': True,
-            'message': 'Cours supprimé avec succès'
+            'message': 'Cours supprimÃ© avec succÃ¨s'
         }), 200
         
     except Exception as e:
@@ -336,9 +336,9 @@ def get_schedule():
         # Query de base avec joins
         query = db.session.query(CourseSchedule).join(Course)
         
-        # Filtrer selon le rôle
+        # Filtrer selon le rÃ´le
         if user_role == 'student':
-            # Étudiants: seulement leurs cours
+            # Ã‰tudiants: seulement leurs cours
             query = query.join(StudentEnrollment).filter(
                 StudentEnrollment.student_id == user_id,
                 StudentEnrollment.status == 'enrolled'
@@ -364,18 +364,18 @@ def get_schedule():
         }), 500
 
 # ============================================
-# INSCRIRE UN ÉTUDIANT À UN COURS
+# INSCRIRE UN Ã‰TUDIANT Ã€ UN COURS
 # ============================================
 @courses_bp.route('/<int:course_id>/enroll', methods=['POST'])
 @jwt_required()
 def enroll_student(course_id):
-    """Inscrire un étudiant à un cours"""
+    """Inscrire un Ã©tudiant Ã  un cours"""
     try:
         user_id = get_jwt_identity()
         claims = get_jwt()
         user_role = claims.get('role')
         
-        # Les étudiants peuvent s'inscrire eux-mêmes
+        # Les Ã©tudiants peuvent s'inscrire eux-mÃªmes
         # Les admins peuvent inscrire n'importe qui
         data = request.get_json()
         student_id = data.get('student_id', user_id)
@@ -383,18 +383,18 @@ def enroll_student(course_id):
         if user_role == 'student' and student_id != user_id:
             return jsonify({
                 'success': False,
-                'message': 'Vous ne pouvez inscrire que vous-même'
+                'message': 'Vous ne pouvez inscrire que vous-mÃªme'
             }), 403
         
-        # Vérifier si le cours existe
+        # VÃ©rifier si le cours existe
         course = Course.query.get(course_id)
         if not course:
             return jsonify({
                 'success': False,
-                'message': 'Cours non trouvé'
+                'message': 'Cours non trouvÃ©'
             }), 404
         
-        # Vérifier si déjà inscrit
+        # VÃ©rifier si dÃ©jÃ  inscrit
         existing = StudentEnrollment.query.filter_by(
             student_id=student_id,
             course_id=course_id
@@ -403,17 +403,17 @@ def enroll_student(course_id):
         if existing:
             return jsonify({
                 'success': False,
-                'message': 'Déjà inscrit à ce cours'
+                'message': 'DÃ©jÃ  inscrit Ã  ce cours'
             }), 409
         
-        # Vérifier la capacité
+        # VÃ©rifier la capacitÃ©
         if course.enrolled_students >= course.max_students:
             return jsonify({
                 'success': False,
                 'message': 'Cours complet'
             }), 400
         
-        # Créer l'inscription
+        # CrÃ©er l'inscription
         enrollment = StudentEnrollment(
             student_id=student_id,
             course_id=course_id,
@@ -425,7 +425,7 @@ def enroll_student(course_id):
         
         return jsonify({
             'success': True,
-            'message': 'Inscription réussie',
+            'message': 'Inscription rÃ©ussie',
             'enrollment': enrollment.to_dict()
         }), 201
         
@@ -437,19 +437,19 @@ def enroll_student(course_id):
         }), 500
 
 # ============================================
-# MES COURS (pour étudiant)
+# MES COURS (pour Ã©tudiant)
 # ============================================
 @courses_bp.route('/my-courses', methods=['GET'])
 @jwt_required()
 def get_my_courses():
-    """Obtenir les cours de l'étudiant connecté"""
+    """Obtenir les cours de l'Ã©tudiant connectÃ©"""
     try:
         user_id = get_jwt_identity()
         claims = get_jwt()
         user_role = claims.get('role')
         
         if user_role == 'student':
-            # Cours auxquels l'étudiant est inscrit
+            # Cours auxquels l'Ã©tudiant est inscrit
             enrollments = StudentEnrollment.query.filter_by(
                 student_id=user_id,
                 status='enrolled'
@@ -459,7 +459,7 @@ def get_my_courses():
                       for enrollment in enrollments]
             
         elif user_role == 'professor':
-            # Cours enseignés par le professeur
+            # Cours enseignÃ©s par le professeur
             courses_taught = Course.query.filter_by(professor_id=user_id).all()
             courses = [course.to_dict(include_professor=False, include_schedules=True)
                       for course in courses_taught]

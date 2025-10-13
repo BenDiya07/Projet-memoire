@@ -128,9 +128,9 @@ def create_app(config_name=None):
     @app.cli.command()
     def init_db():
         """Initialiser la base de données"""
-        print("Initialisation de la base de données...")
+        print("Initialisation de la base de donnees...")
         db.create_all()
-        print("✅ Base de données initialisée!")
+        print("[OK] Base de donnees initialisee!")
     
     @app.cli.command()
     def seed_db():
@@ -149,7 +149,7 @@ def create_app(config_name=None):
             ]
             for role in roles:
                 db.session.add(role)
-            print("✓ Rôles ajoutés")
+            print("[OK] Roles ajoutes")
         
         # Utilisateurs de test
         if User.query.count() == 0:
@@ -181,7 +181,7 @@ def create_app(config_name=None):
             ]
             for user in users:
                 db.session.add(user)
-            print("✓ Utilisateurs de test ajoutés")
+            print("[OK] Utilisateurs de test ajoutes")
         
         # Équipements
         if Equipment.query.count() == 0:
@@ -194,11 +194,11 @@ def create_app(config_name=None):
             ]
             for eq in equipment_list:
                 db.session.add(eq)
-            print("✓ Équipements ajoutés")
+            print("[OK] Equipements ajoutes")
         
         db.session.commit()
-        print("✅ Données de test ajoutées avec succès!")
-        print("\n📝 Comptes de test:")
+        print("[OK] Donnees de test ajoutees avec succes!")
+        print("\nComptes de test:")
         print("   Admin:      admin@univ.fr / password123")
         print("   Professeur: prof@univ.fr / password123")
         print("   Étudiant:   etudiant@univ.fr / password123")

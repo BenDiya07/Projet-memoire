@@ -1,4 +1,4 @@
--- Database: university_management
+﻿-- Database: university_management
 
 -- DROP DATABASE IF EXISTS university_management;
 

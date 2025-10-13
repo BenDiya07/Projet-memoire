@@ -1,5 +1,5 @@
-"""
-Modèles SQLAlchemy pour la base de données PostgreSQL
+﻿"""
+ModÃ¨les SQLAlchemy pour la base de donnÃ©es PostgreSQL
 """
 
 from datetime import datetime
@@ -10,7 +10,7 @@ import uuid
 db = SQLAlchemy()
 
 # ============================================
-# MODÈLE: Role
+# MODÃˆLE: Role
 # ============================================
 class Role(db.Model):
     __tablename__ = 'roles'
@@ -32,7 +32,7 @@ class Role(db.Model):
         }
 
 # ============================================
-# MODÈLE: User
+# MODÃˆLE: User
 # ============================================
 class User(db.Model):
     __tablename__ = 'users'
@@ -78,7 +78,7 @@ class User(db.Model):
         return data
 
 # ============================================
-# MODÈLE: Room
+# MODÃˆLE: Room
 # ============================================
 class Room(db.Model):
     __tablename__ = 'rooms'
@@ -116,7 +116,7 @@ class Room(db.Model):
         return data
 
 # ============================================
-# MODÈLE: Equipment
+# MODÃˆLE: Equipment
 # ============================================
 class Equipment(db.Model):
     __tablename__ = 'equipment'
@@ -137,7 +137,7 @@ class Equipment(db.Model):
         }
 
 # ============================================
-# MODÈLE: RoomEquipment (Table d'association)
+# MODÃˆLE: RoomEquipment (Table d'association)
 # ============================================
 class RoomEquipment(db.Model):
     __tablename__ = 'room_equipment'
@@ -161,7 +161,7 @@ class RoomEquipment(db.Model):
         }
 
 # ============================================
-# MODÈLE: Course
+# MODÃˆLE: Course
 # ============================================
 class Course(db.Model):
     __tablename__ = 'courses'
@@ -213,7 +213,7 @@ class Course(db.Model):
         return data
 
 # ============================================
-# MODÈLE: CourseSchedule
+# MODÃˆLE: CourseSchedule
 # ============================================
 class CourseSchedule(db.Model):
     __tablename__ = 'course_schedules'
@@ -256,7 +256,7 @@ class CourseSchedule(db.Model):
         return data
 
 # ============================================
-# MODÈLE: StudentEnrollment
+# MODÃˆLE: StudentEnrollment
 # ============================================
 class StudentEnrollment(db.Model):
     __tablename__ = 'student_enrollments'
@@ -291,7 +291,7 @@ class StudentEnrollment(db.Model):
         return data
 
 # ============================================
-# MODÈLE: CourseSuggestion
+# MODÃˆLE: CourseSuggestion
 # ============================================
 class CourseSuggestion(db.Model):
     __tablename__ = 'course_suggestions'
@@ -360,7 +360,7 @@ class CourseSuggestion(db.Model):
         return data
 
 # ============================================
-# MODÈLE: Conflict
+# MODÃˆLE: Conflict
 # ============================================
 class Conflict(db.Model):
     __tablename__ = 'conflicts'
@@ -389,7 +389,7 @@ class Conflict(db.Model):
         }
 
 # ============================================
-# MODÈLE: AuditLog
+# MODÃˆLE: AuditLog
 # ============================================
 class AuditLog(db.Model):
     __tablename__ = 'audit_logs'
@@ -416,7 +416,7 @@ class AuditLog(db.Model):
         }
 
 # ============================================
-# MODÈLE: Notification
+# MODÃˆLE: Notification
 # ============================================
 class Notification(db.Model):
     __tablename__ = 'notifications'

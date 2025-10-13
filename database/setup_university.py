@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
-Script de configuration pour utiliser la base de données university existante
+Script de configuration pour utiliser la base de donnÃ©es university existante
 """
 
 import psycopg2
@@ -10,7 +10,7 @@ import sys
 from getpass import getpass
 
 def execute_sql_file(conn, filepath):
-    """Exécuter un fichier SQL"""
+    """ExÃ©cuter un fichier SQL"""
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             sql_content = f.read()
@@ -22,14 +22,14 @@ def execute_sql_file(conn, filepath):
         return True
         
     except Exception as e:
-        print(f"❌ Erreur lors de l'exécution de {filepath}: {e}")
+        print(f"âŒ Erreur lors de l'exÃ©cution de {filepath}: {e}")
         conn.rollback()
         return False
 
 def setup_university_db():
     """Configuration de la base university"""
     print("=" * 60)
-    print("🎓 CONFIGURATION BASE UNIVERSITY - MODE EXISTANT")
+    print("ðŸŽ“ CONFIGURATION BASE UNIVERSITY - MODE EXISTANT")
     print("=" * 60)
     
     # Configuration
@@ -40,12 +40,12 @@ def setup_university_db():
     password = getpass("Mot de passe PostgreSQL: ")
     
     if not password:
-        print("❌ Le mot de passe est requis!")
+        print("âŒ Le mot de passe est requis!")
         sys.exit(1)
     
     try:
         # Se connecter au serveur PostgreSQL
-        print(f"\n🔌 Connexion à PostgreSQL sur {host}:{port}...")
+        print(f"\nðŸ”Œ Connexion Ã  PostgreSQL sur {host}:{port}...")
         conn_postgres = psycopg2.connect(
             host=host,
             port=port,
@@ -56,7 +56,7 @@ def setup_university_db():
         conn_postgres.autocommit = True
         cursor = conn_postgres.cursor()
         
-        # Vérifier si la base existe
+        # VÃ©rifier si la base existe
         cursor.execute(
             "SELECT 1 FROM pg_database WHERE datname = %s",
             (db_name,)
@@ -64,19 +64,19 @@ def setup_university_db():
         exists = cursor.fetchone()
         
         if not exists:
-            print(f"📦 Création de la base de données '{db_name}'...")
+            print(f"ðŸ“¦ CrÃ©ation de la base de donnÃ©es '{db_name}'...")
             cursor.execute(
                 sql.SQL("CREATE DATABASE {}").format(sql.Identifier(db_name))
             )
-            print(f"✅ Base de données '{db_name}' créée!")
+            print(f"âœ… Base de donnÃ©es '{db_name}' crÃ©Ã©e!")
         else:
-            print(f"ℹ️  La base de données '{db_name}' existe déjà.")
+            print(f"â„¹ï¸  La base de donnÃ©es '{db_name}' existe dÃ©jÃ .")
         
         cursor.close()
         conn_postgres.close()
         
-        # Se connecter à la base university
-        print(f"\n🔌 Connexion à la base '{db_name}'...")
+        # Se connecter Ã  la base university
+        print(f"\nðŸ”Œ Connexion Ã  la base '{db_name}'...")
         conn = psycopg2.connect(
             host=host,
             port=port,
@@ -85,9 +85,9 @@ def setup_university_db():
             database=db_name
         )
         
-        print("✅ Connexion établie!")
+        print("âœ… Connexion Ã©tablie!")
         
-        # Exécuter le schéma de base si nécessaire
+        # ExÃ©cuter le schÃ©ma de base si nÃ©cessaire
         script_dir = os.path.dirname(os.path.abspath(__file__))
         university_sql = os.path.join(script_dir, 'university.sql')
         
@@ -97,68 +97,68 @@ def setup_university_db():
         cursor.close()
         
         if table_count == 0:
-            print("\n📋 Création des tables de base (university.sql)...")
+            print("\nðŸ“‹ CrÃ©ation des tables de base (university.sql)...")
             if execute_sql_file(conn, university_sql):
-                print("✅ Tables de base créées!")
+                print("âœ… Tables de base crÃ©Ã©es!")
             else:
-                print("❌ Erreur lors de la création des tables de base")
+                print("âŒ Erreur lors de la crÃ©ation des tables de base")
                 return False
         else:
-            print(f"\nℹ️  {table_count} table(s) déjà présente(s)")
+            print(f"\nâ„¹ï¸  {table_count} table(s) dÃ©jÃ  prÃ©sente(s)")
         
-        # Ajouter les améliorations
-        print("\n🚀 Ajout des améliorations (nouvelles tables, triggers, vues)...")
+        # Ajouter les amÃ©liorations
+        print("\nðŸš€ Ajout des amÃ©liorations (nouvelles tables, triggers, vues)...")
         complete_schema = os.path.join(script_dir, 'create_complete_schema.sql')
         
         if execute_sql_file(conn, complete_schema):
-            print("✅ Améliorations appliquées avec succès!")
+            print("âœ… AmÃ©liorations appliquÃ©es avec succÃ¨s!")
         else:
-            print("⚠️  Certaines améliorations n'ont pas pu être appliquées")
+            print("âš ï¸  Certaines amÃ©liorations n'ont pas pu Ãªtre appliquÃ©es")
         
-        # Afficher un résumé
-        print("\n📊 RÉSUMÉ DE LA BASE DE DONNÉES:")
+        # Afficher un rÃ©sumÃ©
+        print("\nðŸ“Š RÃ‰SUMÃ‰ DE LA BASE DE DONNÃ‰ES:")
         cursor = conn.cursor()
         
         cursor.execute("SELECT COUNT(*) FROM Users")
-        print(f"   👥 Utilisateurs: {cursor.fetchone()[0]}")
+        print(f"   ðŸ‘¥ Utilisateurs: {cursor.fetchone()[0]}")
         
         try:
             cursor.execute("SELECT COUNT(*) FROM Courses")
-            print(f"   📚 Cours: {cursor.fetchone()[0]}")
+            print(f"   ðŸ“š Cours: {cursor.fetchone()[0]}")
         except:
-            print(f"   📚 Cours: 0")
+            print(f"   ðŸ“š Cours: 0")
         
         try:
             cursor.execute("SELECT COUNT(*) FROM Rooms")
-            print(f"   🏫 Salles: {cursor.fetchone()[0]}")
+            print(f"   ðŸ« Salles: {cursor.fetchone()[0]}")
         except:
-            print(f"   🏫 Salles: 0")
+            print(f"   ðŸ« Salles: 0")
         
         try:
             cursor.execute("SELECT COUNT(*) FROM Course_Suggestions WHERE status = 'pending'")
-            print(f"   💡 Suggestions en attente: {cursor.fetchone()[0]}")
+            print(f"   ðŸ’¡ Suggestions en attente: {cursor.fetchone()[0]}")
         except:
-            print(f"   💡 Suggestions en attente: 0")
+            print(f"   ðŸ’¡ Suggestions en attente: 0")
         
         cursor.close()
         conn.close()
         
-        print("\n✨ Configuration terminée avec succès!")
-        print("\n📝 COMPTES DE TEST:")
+        print("\nâœ¨ Configuration terminÃ©e avec succÃ¨s!")
+        print("\nðŸ“ COMPTES DE TEST:")
         print("   Admin:      admin@univ.fr / password123")
         print("   Professeur: prof@univ.fr / password123")
-        print("   Étudiant:   etudiant@univ.fr / password123")
-        print("\n🚀 Vous pouvez maintenant démarrer le backend:")
+        print("   Ã‰tudiant:   etudiant@univ.fr / password123")
+        print("\nðŸš€ Vous pouvez maintenant dÃ©marrer le backend:")
         print("   cd backend")
         print("   python run.py")
         
         return True
         
     except psycopg2.Error as e:
-        print(f"❌ Erreur PostgreSQL: {e}")
+        print(f"âŒ Erreur PostgreSQL: {e}")
         return False
     except Exception as e:
-        print(f"❌ Erreur: {e}")
+        print(f"âŒ Erreur: {e}")
         return False
 
 if __name__ == "__main__":

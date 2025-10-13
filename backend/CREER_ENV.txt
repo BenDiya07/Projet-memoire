@@ -1,4 +1,4 @@
-COPIEZ CE CONTENU DANS UN FICHIER NOMMÉ ".env" (dans le dossier backend/)
+﻿COPIEZ CE CONTENU DANS UN FICHIER NOMMÃ‰ ".env" (dans le dossier backend/)
 
 ==============================================================
 
@@ -16,12 +16,12 @@ SQL_ECHO=False
 
 INSTRUCTIONS :
 
-1. Créer un NOUVEAU FICHIER nommé exactement ".env" (avec le point au début)
+1. CrÃ©er un NOUVEAU FICHIER nommÃ© exactement ".env" (avec le point au dÃ©but)
 2. Le placer dans le dossier "backend/"
 3. Copier le contenu ci-dessus dedans
 4. CHANGER "METTEZ_VOTRE_MOT_DE_PASSE_POSTGRES_ICI" par votre vrai mot de passe
 5. Sauvegarder
-6. Redémarrer le serveur
+6. RedÃ©marrer le serveur
 
 IMPORTANT : Le fichier doit s'appeler ".env" (pas ".env.txt" !)
 

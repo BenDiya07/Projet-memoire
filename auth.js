@@ -56,7 +56,7 @@ class AuthManager {
             const data = await response.json();
             
             if (data.success) {
-                console.log('✅ Inscription réussie via API:', data.user);
+                console.log('Inscription reussie via API:', data.user);
                 
                 return {
                     success: true,
@@ -70,7 +70,7 @@ class AuthManager {
                 };
             }
         } catch (error) {
-            console.error('❌ Erreur lors de l\'inscription:', error);
+            console.error('Erreur lors de l\'inscription:', error);
             
             // Fallback: inscription locale si le backend n'est pas disponible
             return this.registerFallback(userData);
@@ -162,7 +162,7 @@ class AuthManager {
                 // Stocker le rôle (détecté automatiquement par le backend)
                 localStorage.setItem('userRole', user.role.name);
                 
-                console.log('✅ Connexion réussie en tant que:', user.role.name);
+                console.log('Connexion reussie en tant que:', user.role.name);
                 
                 return {
                     success: true,
@@ -176,7 +176,7 @@ class AuthManager {
                 };
             }
         } catch (error) {
-            console.error('❌ Erreur de connexion:', error);
+            console.error('Erreur de connexion:', error);
             
             // Fallback: Utiliser la détection locale si le backend n'est pas disponible
             return this.loginFallback(email, password);

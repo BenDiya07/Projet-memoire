@@ -1,19 +1,19 @@
--- ============================================
--- SCHÉMA COMPLET - GESTION COURS UNIVERSITAIRES
--- Basé sur la structure existante + améliorations
+﻿-- ============================================
+-- SCHÃ‰MA COMPLET - GESTION COURS UNIVERSITAIRES
+-- BasÃ© sur la structure existante + amÃ©liorations
 -- ============================================
 
--- Se connecter à la base university
+-- Se connecter Ã  la base university
 -- \c university
 
 -- Extension pour UUID
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================
--- AMÉLIORATION DES TABLES EXISTANTES
+-- AMÃ‰LIORATION DES TABLES EXISTANTES
 -- ============================================
 
--- Ajouter des colonnes manquantes à Users si elles n'existent pas
+-- Ajouter des colonnes manquantes Ã  Users si elles n'existent pas
 DO $$ 
 BEGIN
     -- Ajouter UUID si n'existe pas
@@ -34,7 +34,7 @@ BEGIN
 END $$;
 
 -- ============================================
--- NOUVELLES TABLES À AJOUTER
+-- NOUVELLES TABLES Ã€ AJOUTER
 -- ============================================
 
 -- Table des suggestions de cours
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS Audit_Logs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Table des équipements (si pas déjà dans Rooms)
+-- Table des Ã©quipements (si pas dÃ©jÃ  dans Rooms)
 CREATE TABLE IF NOT EXISTS Equipment (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) UNIQUE NOT NULL,
@@ -149,7 +149,7 @@ CREATE INDEX IF NOT EXISTS idx_notifications_read ON Notifications(is_read);
 -- TRIGGERS
 -- ============================================
 
--- Fonction pour mettre à jour updated_at automatiquement
+-- Fonction pour mettre Ã  jour updated_at automatiquement
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -237,20 +237,20 @@ SELECT
     (SELECT COUNT(*) FROM Rooms WHERE is_available = true) AS available_rooms;
 
 -- ============================================
--- DONNÉES DE TEST (Si la base est vide)
+-- DONNÃ‰ES DE TEST (Si la base est vide)
 -- ============================================
 
--- Insérer des équipements de base
+-- InsÃ©rer des Ã©quipements de base
 INSERT INTO Equipment (name, description) 
 VALUES 
-    ('Projecteur', 'Projecteur vidéo HD'),
-    ('Ordinateurs', 'Ordinateurs pour étudiants'),
+    ('Projecteur', 'Projecteur vidÃ©o HD'),
+    ('Ordinateurs', 'Ordinateurs pour Ã©tudiants'),
     ('Tableau blanc', 'Tableau blanc interactif'),
-    ('Microphone', 'Système de sonorisation'),
-    ('WiFi', 'Connexion WiFi haut débit')
+    ('Microphone', 'SystÃ¨me de sonorisation'),
+    ('WiFi', 'Connexion WiFi haut dÃ©bit')
 ON CONFLICT (name) DO NOTHING;
 
--- Créer des utilisateurs de test s'ils n'existent pas
+-- CrÃ©er des utilisateurs de test s'ils n'existent pas
 INSERT INTO Users (first_name, last_name, email, password_hash, role, is_active)
 VALUES
     ('Admin', 'Principal', 'admin@univ.fr', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYqRfNmRqWe', 'admin', true),
@@ -261,9 +261,9 @@ ON CONFLICT (email) DO NOTHING;
 -- Message de confirmation
 DO $$
 BEGIN
-    RAISE NOTICE 'Schéma complété avec succès!';
-    RAISE NOTICE 'Tables créées: Users, Professors, Students, Rooms, Courses, Schedules, Enrollments, Course_Suggestions, Conflicts, Notifications, Audit_Logs, Equipment';
-    RAISE NOTICE 'Vues créées: v_complete_schedule, v_pending_suggestions, v_dashboard_stats';
-    RAISE NOTICE 'Triggers créés pour mise à jour automatique';
+    RAISE NOTICE 'SchÃ©ma complÃ©tÃ© avec succÃ¨s!';
+    RAISE NOTICE 'Tables crÃ©Ã©es: Users, Professors, Students, Rooms, Courses, Schedules, Enrollments, Course_Suggestions, Conflicts, Notifications, Audit_Logs, Equipment';
+    RAISE NOTICE 'Vues crÃ©Ã©es: v_complete_schedule, v_pending_suggestions, v_dashboard_stats';
+    RAISE NOTICE 'Triggers crÃ©Ã©s pour mise Ã  jour automatique';
 END $$;
 

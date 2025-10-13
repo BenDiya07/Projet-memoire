@@ -1,4 +1,4 @@
-"""
+﻿"""
 Routes d'authentification
 """
 
@@ -33,20 +33,20 @@ def register():
                 'message': f'Champs manquants: {", ".join(missing_fields)}'
             }), 400
         
-        # Vérifier si l'email existe déjà
+        # VÃ©rifier si l'email existe dÃ©jÃ 
         existing_user = User.query.filter_by(email=data['email']).first()
         if existing_user:
             return jsonify({
                 'success': False,
-                'message': 'Un compte avec cet email existe déjà'
+                'message': 'Un compte avec cet email existe dÃ©jÃ '
             }), 409
         
-        # Vérifier si le rôle existe
+        # VÃ©rifier si le rÃ´le existe
         role = Role.query.filter_by(name=data['role']).first()
         if not role:
             return jsonify({
                 'success': False,
-                'message': f'Rôle invalide: {data["role"]}'
+                'message': f'RÃ´le invalide: {data["role"]}'
             }), 400
         
         # Hasher le mot de passe
@@ -55,7 +55,7 @@ def register():
             bcrypt.gensalt()
         ).decode('utf-8')
         
-        # Créer le nouvel utilisateur
+        # CrÃ©er le nouvel utilisateur
         new_user = User(
             email=data['email'],
             password_hash=password_hash,
@@ -84,7 +84,7 @@ def register():
         
         return jsonify({
             'success': True,
-            'message': 'Inscription réussie',
+            'message': 'Inscription rÃ©ussie',
             'user': new_user.to_dict()
         }), 201
         
@@ -92,7 +92,7 @@ def register():
         db.session.rollback()
         return jsonify({
             'success': False,
-            'message': 'Erreur lors de l\'inscription (données en conflit)'
+            'message': 'Erreur lors de l\'inscription (donnÃ©es en conflit)'
         }), 409
     except Exception as e:
         db.session.rollback()
@@ -106,7 +106,7 @@ def register():
 # ============================================
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    """Connexion d'un utilisateur - Détection automatique du rôle"""
+    """Connexion d'un utilisateur - DÃ©tection automatique du rÃ´le"""
     try:
         data = request.get_json()
         
@@ -126,7 +126,7 @@ def login():
                 'message': 'Identifiants invalides'
             }), 401
         
-        # Vérifier le mot de passe
+        # VÃ©rifier le mot de passe
         if not bcrypt.checkpw(data['password'].encode('utf-8'), 
                               user.password_hash.encode('utf-8')):
             return jsonify({
@@ -134,18 +134,18 @@ def login():
                 'message': 'Identifiants invalides'
             }), 401
         
-        # Vérifier si le compte est actif
+        # VÃ©rifier si le compte est actif
         if not user.is_active:
             return jsonify({
                 'success': False,
-                'message': 'Compte désactivé'
+                'message': 'Compte dÃ©sactivÃ©'
             }), 403
         
-        # Mettre à jour last_login
+        # Mettre Ã  jour last_login
         user.last_login = datetime.utcnow()
         db.session.commit()
         
-        # Créer les tokens JWT
+        # CrÃ©er les tokens JWT
         access_token = create_access_token(
             identity=user.id,
             additional_claims={
@@ -170,7 +170,7 @@ def login():
         
         return jsonify({
             'success': True,
-            'message': 'Connexion réussie',
+            'message': 'Connexion rÃ©ussie',
             'user': user.to_dict(),
             'access_token': access_token,
             'refresh_token': refresh_token
@@ -184,12 +184,12 @@ def login():
         }), 500
 
 # ============================================
-# RAFRAÎCHIR LE TOKEN
+# RAFRAÃŽCHIR LE TOKEN
 # ============================================
 @auth_bp.route('/refresh', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh():
-    """Rafraîchir le token d'accès"""
+    """RafraÃ®chir le token d'accÃ¨s"""
     try:
         current_user_id = get_jwt_identity()
         user = User.query.get(current_user_id)
@@ -200,7 +200,7 @@ def refresh():
                 'message': 'Utilisateur invalide ou inactif'
             }), 401
         
-        # Créer un nouveau token d'accès
+        # CrÃ©er un nouveau token d'accÃ¨s
         access_token = create_access_token(
             identity=user.id,
             additional_claims={
@@ -217,7 +217,7 @@ def refresh():
     except Exception as e:
         return jsonify({
             'success': False,
-            'message': f'Erreur lors du rafraîchissement: {str(e)}'
+            'message': f'Erreur lors du rafraÃ®chissement: {str(e)}'
         }), 500
 
 # ============================================
@@ -226,7 +226,7 @@ def refresh():
 @auth_bp.route('/me', methods=['GET'])
 @jwt_required()
 def get_current_user():
-    """Obtenir les informations de l'utilisateur connecté"""
+    """Obtenir les informations de l'utilisateur connectÃ©"""
     try:
         current_user_id = get_jwt_identity()
         user = User.query.get(current_user_id)
@@ -234,7 +234,7 @@ def get_current_user():
         if not user:
             return jsonify({
                 'success': False,
-                'message': 'Utilisateur non trouvé'
+                'message': 'Utilisateur non trouvÃ©'
             }), 404
         
         return jsonify({
@@ -249,12 +249,12 @@ def get_current_user():
         }), 500
 
 # ============================================
-# DÉCONNEXION (côté client principalement)
+# DÃ‰CONNEXION (cÃ´tÃ© client principalement)
 # ============================================
 @auth_bp.route('/logout', methods=['POST'])
 @jwt_required()
 def logout():
-    """Déconnexion (invalider le token côté client)"""
+    """DÃ©connexion (invalider le token cÃ´tÃ© client)"""
     try:
         current_user_id = get_jwt_identity()
         
@@ -272,23 +272,23 @@ def logout():
         
         return jsonify({
             'success': True,
-            'message': 'Déconnexion réussie'
+            'message': 'DÃ©connexion rÃ©ussie'
         }), 200
         
     except Exception as e:
         db.session.rollback()
         return jsonify({
             'success': False,
-            'message': f'Erreur lors de la déconnexion: {str(e)}'
+            'message': f'Erreur lors de la dÃ©connexion: {str(e)}'
         }), 500
 
 # ============================================
-# VÉRIFICATION DU TOKEN
+# VÃ‰RIFICATION DU TOKEN
 # ============================================
 @auth_bp.route('/verify', methods=['GET'])
 @jwt_required()
 def verify_token():
-    """Vérifier si le token est valide"""
+    """VÃ©rifier si le token est valide"""
     try:
         current_user_id = get_jwt_identity()
         claims = get_jwt()
@@ -316,11 +316,11 @@ def verify_token():
         }), 401
 
 # ============================================
-# LISTE DES RÔLES DISPONIBLES
+# LISTE DES RÃ”LES DISPONIBLES
 # ============================================
 @auth_bp.route('/roles', methods=['GET'])
 def get_roles():
-    """Obtenir la liste des rôles disponibles"""
+    """Obtenir la liste des rÃ´les disponibles"""
     try:
         roles = Role.query.all()
         return jsonify({
