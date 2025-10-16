@@ -28,18 +28,18 @@ def get_suggestions():
         # Query de base
         query = CourseSuggestion.query
         
-        # Filtrer selon le rÃ´le
+        # Filtrer selon le role
         if user_role == 'professor':
             # Professeurs: seulement leurs suggestions
             query = query.filter_by(professor_id=user_id)
         elif user_role != 'admin':
-            # Autres rÃ´les: accÃ¨s refusÃ©
+            # Autres roles: acces refuse
             return jsonify({
                 'success': False,
-                'message': 'AccÃ¨s refusÃ©'
+                'message': 'Acces refuse'
             }), 403
         
-        # Filtrer par statut si spÃ©cifiÃ©
+        # Filtrer par statut si specifie
         if status:
             query = query.filter_by(status=status)
         
@@ -66,12 +66,12 @@ def get_suggestions():
         }), 500
 
 # ============================================
-# DÃ‰TAILS D'UNE SUGGESTION
+# DETAILS D'UNE SUGGESTION
 # ============================================
 @suggestions_bp.route('/<int:suggestion_id>', methods=['GET'])
 @jwt_required()
 def get_suggestion(suggestion_id):
-    """Obtenir les dÃ©tails d'une suggestion"""
+    """Obtenir les details d'une suggestion"""
     try:
         user_id = get_jwt_identity()
         claims = get_jwt()
@@ -82,14 +82,14 @@ def get_suggestion(suggestion_id):
         if not suggestion:
             return jsonify({
                 'success': False,
-                'message': 'Suggestion non trouvÃ©e'
+                'message': 'Suggestion non trouvee'
             }), 404
         
-        # VÃ©rifier les permissions
+        # Verifier les permissions
         if user_role == 'professor' and suggestion.professor_id != user_id:
             return jsonify({
                 'success': False,
-                'message': 'AccÃ¨s refusÃ©'
+                'message': 'Acces refuse'
             }), 403
         
         return jsonify({
@@ -104,22 +104,22 @@ def get_suggestion(suggestion_id):
         }), 500
 
 # ============================================
-# CRÃ‰ER UNE SUGGESTION (Professeur)
+# CREER UNE SUGGESTION (Professeur)
 # ============================================
 @suggestions_bp.route('', methods=['POST'])
 @jwt_required()
 def create_suggestion():
-    """CrÃ©er une nouvelle suggestion de cours"""
+    """Creer une nouvelle suggestion de cours"""
     try:
         user_id = get_jwt_identity()
         claims = get_jwt()
         user_role = claims.get('role')
         
-        # Seuls les professeurs et admins peuvent suggÃ©rer
+        # Seuls les professeurs et admins peuvent suggerer
         if user_role not in ['professor', 'admin']:
             return jsonify({
                 'success': False,
-                'message': 'AccÃ¨s refusÃ©'
+                'message': 'Acces refuse'
             }), 403
         
         data = request.get_json()
@@ -144,7 +144,7 @@ def create_suggestion():
             except:
                 preferred_time = None
         
-        # CrÃ©er la suggestion
+        # Creer la suggestion
         new_suggestion = CourseSuggestion(
             professor_id=user_id,
             course_name=data.get('course_name') or data.get('courseName'),
@@ -165,13 +165,13 @@ def create_suggestion():
         db.session.add(new_suggestion)
         db.session.commit()
         
-        # CrÃ©er une notification pour les admins
+        # Creer une notification pour les admins
         admins = User.query.join(User.role).filter_by(name='admin').all()
         for admin in admins:
             notification = Notification(
                 user_id=admin.id,
                 title='Nouvelle suggestion de cours',
-                message=f"Le professeur a suggÃ©rÃ© un nouveau cours: {new_suggestion.course_name}",
+                message=f"Le professeur a suggere un nouveau cours: {new_suggestion.course_name}",
                 type='suggestion',
                 related_entity='course_suggestion',
                 related_id=new_suggestion.id
@@ -192,7 +192,7 @@ def create_suggestion():
         
         return jsonify({
             'success': True,
-            'message': 'Suggestion crÃ©Ã©e avec succÃ¨s',
+            'message': 'Suggestion creee avec succes',
             'suggestion': new_suggestion.to_dict(include_professor=True)
         }), 201
         
@@ -209,7 +209,7 @@ def create_suggestion():
 @suggestions_bp.route('/<int:suggestion_id>/approve', methods=['POST'])
 @jwt_required()
 def approve_suggestion(suggestion_id):
-    """Approuver une suggestion et crÃ©er le cours"""
+    """Approuver une suggestion et creer le cours"""
     try:
         user_id = get_jwt_identity()
         claims = get_jwt()
@@ -219,7 +219,7 @@ def approve_suggestion(suggestion_id):
         if user_role != 'admin':
             return jsonify({
                 'success': False,
-                'message': 'AccÃ¨s refusÃ©'
+                'message': 'Acces refuse'
             }), 403
         
         suggestion = CourseSuggestion.query.get(suggestion_id)
@@ -227,16 +227,16 @@ def approve_suggestion(suggestion_id):
         if not suggestion:
             return jsonify({
                 'success': False,
-                'message': 'Suggestion non trouvÃ©e'
+                'message': 'Suggestion non trouvee'
             }), 404
         
         if suggestion.status != 'pending':
             return jsonify({
                 'success': False,
-                'message': 'Cette suggestion a dÃ©jÃ  Ã©tÃ© traitÃ©e'
+                'message': 'Cette suggestion a dejÃ  ete traitee'
             }), 400
         
-        # CrÃ©er le cours Ã  partir de la suggestion
+        # Creer le cours Ã  partir de la suggestion
         data = request.get_json() or {}
         
         new_course = Course(
@@ -260,11 +260,11 @@ def approve_suggestion(suggestion_id):
         suggestion.reviewed_at = datetime.utcnow()
         suggestion.approved_course_id = new_course.id
         
-        # CrÃ©er une notification pour le professeur
+        # Creer une notification pour le professeur
         notification = Notification(
             user_id=suggestion.professor_id,
-            title='Suggestion approuvÃ©e',
-            message=f"Votre suggestion '{suggestion.course_name}' a Ã©tÃ© approuvÃ©e!",
+            title='Suggestion approuvee',
+            message=f"Votre suggestion '{suggestion.course_name}' a ete approuvee!",
             type='success',
             related_entity='course',
             related_id=new_course.id
@@ -286,7 +286,7 @@ def approve_suggestion(suggestion_id):
         
         return jsonify({
             'success': True,
-            'message': 'Suggestion approuvÃ©e et cours crÃ©Ã©',
+            'message': 'Suggestion approuvee et cours cree',
             'suggestion': suggestion.to_dict(include_professor=True),
             'course': new_course.to_dict(include_professor=True)
         }), 200
@@ -314,7 +314,7 @@ def reject_suggestion(suggestion_id):
         if user_role != 'admin':
             return jsonify({
                 'success': False,
-                'message': 'AccÃ¨s refusÃ©'
+                'message': 'Acces refuse'
             }), 403
         
         suggestion = CourseSuggestion.query.get(suggestion_id)
@@ -322,17 +322,17 @@ def reject_suggestion(suggestion_id):
         if not suggestion:
             return jsonify({
                 'success': False,
-                'message': 'Suggestion non trouvÃ©e'
+                'message': 'Suggestion non trouvee'
             }), 404
         
         if suggestion.status != 'pending':
             return jsonify({
                 'success': False,
-                'message': 'Cette suggestion a dÃ©jÃ  Ã©tÃ© traitÃ©e'
+                'message': 'Cette suggestion a dejÃ  ete traitee'
             }), 400
         
         data = request.get_json()
-        reason = data.get('reason', 'Non spÃ©cifiÃ©')
+        reason = data.get('reason', 'Non specifie')
         
         # Mettre Ã  jour la suggestion
         suggestion.status = 'rejected'
@@ -340,11 +340,11 @@ def reject_suggestion(suggestion_id):
         suggestion.reviewed_at = datetime.utcnow()
         suggestion.rejection_reason = reason
         
-        # CrÃ©er une notification pour le professeur
+        # Creer une notification pour le professeur
         notification = Notification(
             user_id=suggestion.professor_id,
-            title='Suggestion rejetÃ©e',
-            message=f"Votre suggestion '{suggestion.course_name}' a Ã©tÃ© rejetÃ©e. Raison: {reason}",
+            title='Suggestion rejetee',
+            message=f"Votre suggestion '{suggestion.course_name}' a ete rejetee. Raison: {reason}",
             type='warning',
             related_entity='course_suggestion',
             related_id=suggestion.id
@@ -366,7 +366,7 @@ def reject_suggestion(suggestion_id):
         
         return jsonify({
             'success': True,
-            'message': 'Suggestion rejetÃ©e',
+            'message': 'Suggestion rejetee',
             'suggestion': suggestion.to_dict(include_professor=True)
         }), 200
         
@@ -391,7 +391,7 @@ def get_suggestions_stats():
         if user_role != 'admin':
             return jsonify({
                 'success': False,
-                'message': 'AccÃ¨s refusÃ©'
+                'message': 'Acces refuse'
             }), 403
         
         pending = CourseSuggestion.query.filter_by(status='pending').count()

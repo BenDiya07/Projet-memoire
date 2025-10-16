@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/env python3
 """
-Script pour afficher les tables de la base de donnÃ©es university
+Script pour afficher les tables de la base de donnees university
 """
 
 import psycopg2
@@ -10,7 +10,7 @@ def show_tables():
     """Afficher toutes les tables et leur contenu"""
     
     # Configuration
-    print("ðŸ”Œ Connexion Ã  PostgreSQL...")
+    print("Connexion a PostgreSQL...")
     password = getpass("Mot de passe PostgreSQL: ")
     
     try:
@@ -24,11 +24,11 @@ def show_tables():
         )
         
         cursor = conn.cursor()
-        print("âœ… ConnectÃ© Ã  la base 'university'\n")
+        print("[OK] Connecte a la base 'university'\n")
         
         # Lister toutes les tables
         print("=" * 70)
-        print("ðŸ“‹ TABLES DISPONIBLES")
+        print("TABLES DISPONIBLES")
         print("=" * 70)
         
         cursor.execute("""
@@ -41,21 +41,21 @@ def show_tables():
         tables = cursor.fetchall()
         
         if not tables:
-            print("âŒ Aucune table trouvÃ©e!")
+            print("[ERREUR] Aucune table trouvee!")
             return
         
         for i, (table_name,) in enumerate(tables, 1):
             print(f"{i:2d}. {table_name}")
         
-        print(f"\nâœ… Total: {len(tables)} table(s)\n")
+        print(f"\n[OK] Total: {len(tables)} table(s)\n")
         
-        # Afficher le dÃ©tail de chaque table
+        # Afficher le detail de chaque table
         print("=" * 70)
-        print("ðŸ“Š DÃ‰TAILS DES TABLES")
+        print("DETAILS DES TABLES")
         print("=" * 70)
         
         for (table_name,) in tables:
-            print(f"\nðŸ”¹ Table: {table_name}")
+            print(f"\n[Table] {table_name}")
             print("-" * 70)
             
             # Nombre de lignes
@@ -74,11 +74,11 @@ def show_tables():
             columns = cursor.fetchall()
             print(f"   Colonnes ({len(columns)}):")
             for col_name, col_type in columns:
-                print(f"      â€¢ {col_name} ({col_type})")
+                print(f"      - {col_name} ({col_type})")
         
         # Afficher les vues
         print("\n" + "=" * 70)
-        print("ðŸ‘ï¸  VUES SQL")
+        print("VUES SQL")
         print("=" * 70)
         
         cursor.execute("""
@@ -93,22 +93,21 @@ def show_tables():
         if views:
             for i, (view_name,) in enumerate(views, 1):
                 print(f"{i}. {view_name}")
-            print(f"\nâœ… Total: {len(views)} vue(s)")
+            print(f"\n[OK] Total: {len(views)} vue(s)")
         else:
-            print("Aucune vue trouvÃ©e")
+            print("Aucune vue trouvee")
         
         cursor.close()
         conn.close()
         
         print("\n" + "=" * 70)
-        print("âœ¨ TerminÃ©!")
+        print("Termine!")
         print("=" * 70)
         
     except psycopg2.Error as e:
-        print(f"âŒ Erreur PostgreSQL: {e}")
+        print(f"[ERREUR] PostgreSQL: {e}")
     except Exception as e:
-        print(f"âŒ Erreur: {e}")
+        print(f"[ERREUR] {e}")
 
 if __name__ == "__main__":
     show_tables()
-

@@ -1,7 +1,7 @@
 ﻿#!/usr/bin/env python3
 """
-Script de configuration de la base de donnÃ©es PostgreSQL
-Pour dÃ©veloppement local et prÃ©paration AWS RDS
+Script de configuration de la base de donnees PostgreSQL
+Pour developpement local et preparation AWS RDS
 """
 
 import psycopg2
@@ -11,9 +11,9 @@ import sys
 from getpass import getpass
 
 def create_database(host, port, admin_user, admin_password, db_name):
-    """CrÃ©er la base de donnÃ©es si elle n'existe pas"""
+    """Creer la base de donnees si elle n'existe pas"""
     try:
-        # Connexion au serveur PostgreSQL (base postgres par dÃ©faut)
+        # Connexion au serveur PostgreSQL (base postgres par defaut)
         conn = psycopg2.connect(
             host=host,
             port=port,
@@ -24,7 +24,7 @@ def create_database(host, port, admin_user, admin_password, db_name):
         conn.autocommit = True
         cursor = conn.cursor()
         
-        # VÃ©rifier si la base existe
+        # Verifier si la base existe
         cursor.execute(
             "SELECT 1 FROM pg_database WHERE datname = %s",
             (db_name,)
@@ -32,24 +32,24 @@ def create_database(host, port, admin_user, admin_password, db_name):
         exists = cursor.fetchone()
         
         if not exists:
-            print(f"ðŸ“¦ CrÃ©ation de la base de donnÃ©es '{db_name}'...")
+            print(f"Creation de la base de donnees '{db_name}'...")
             cursor.execute(
                 sql.SQL("CREATE DATABASE {}").format(sql.Identifier(db_name))
             )
-            print(f"âœ… Base de donnÃ©es '{db_name}' crÃ©Ã©e avec succÃ¨s!")
+            print(f"[OK] Base de donnees '{db_name}' creee avec succes!")
         else:
-            print(f"â„¹ï¸  La base de donnÃ©es '{db_name}' existe dÃ©jÃ .")
+            print(f"[INFO] La base de donnees '{db_name}' existe deja.")
         
         cursor.close()
         conn.close()
         return True
         
     except psycopg2.Error as e:
-        print(f"âŒ Erreur lors de la crÃ©ation de la base de donnÃ©es: {e}")
+        print(f"[ERREUR] lors de la creation de la base de donnees: {e}")
         return False
 
 def execute_sql_file(conn, filepath):
-    """ExÃ©cuter un fichier SQL"""
+    """Executer un fichier SQL"""
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             sql_content = f.read()
@@ -61,121 +61,129 @@ def execute_sql_file(conn, filepath):
         return True
         
     except Exception as e:
-        print(f"âŒ Erreur lors de l'exÃ©cution de {filepath}: {e}")
+        print(f"[ERREUR] lors de l'execution de {filepath}: {e}")
         conn.rollback()
         return False
 
-def setup_database(host, port, user, password, db_name, init_data=True):
-    """Configuration complÃ¨te de la base de donnÃ©es"""
+def setup_database():
+    """Configuration complete de la base de donnees"""
+    print("=" * 60)
+    print("CONFIGURATION BASE DE DONNEES POSTGRESQL")
+    print("Developpement Local + Preparation AWS RDS")
+    print("=" * 60)
+    
+    # Configuration
+    print("\nConfiguration de la connexion PostgreSQL:")
+    host = input("Host [localhost]: ").strip() or 'localhost'
+    port = input("Port [5432]: ").strip() or '5432'
+    admin_user = input("Utilisateur admin [postgres]: ").strip() or 'postgres'
+    admin_password = getpass("Mot de passe admin: ")
+    db_name = input("Nom de la base [gestion_cours_db]: ").strip() or 'gestion_cours_db'
+    
+    if not admin_password:
+        print("[ERREUR] Le mot de passe est requis!")
+        sys.exit(1)
+    
+    # Etape 1: Creer la base de donnees
+    print("\n" + "=" * 60)
+    print("ETAPE 1: CREATION DE LA BASE DE DONNEES")
+    print("=" * 60)
+    
+    if not create_database(host, port, admin_user, admin_password, db_name):
+        sys.exit(1)
+    
+    # Etape 2: Creer le schema
+    print("\n" + "=" * 60)
+    print("ETAPE 2: CREATION DU SCHEMA")
+    print("=" * 60)
+    
     try:
-        print(f"\nðŸ”Œ Connexion Ã  PostgreSQL sur {host}:{port}...")
         conn = psycopg2.connect(
             host=host,
-            port=5432,
-            user=user,
-            password=password,
+            port=port,
+            user=admin_user,
+            password=admin_password,
             database=db_name
         )
         
-        print("âœ… Connexion Ã©tablie!")
-        
-        # ExÃ©cuter le schÃ©ma
-        print("\nðŸ“‹ ExÃ©cution du schÃ©ma (schema.sql)...")
         schema_path = os.path.join(os.path.dirname(__file__), 'schema.sql')
+        
+        if os.path.exists(schema_path):
+            print(f"\nExecution de schema.sql...")
         if execute_sql_file(conn, schema_path):
-            print("âœ… SchÃ©ma crÃ©Ã© avec succÃ¨s!")
-        else:
-            print("âŒ Ã‰chec de la crÃ©ation du schÃ©ma")
-            return False
-        
-        # ExÃ©cuter les donnÃ©es initiales si demandÃ©
-        if init_data:
-            print("\nðŸ“Š Insertion des donnÃ©es de test (init_db.sql)...")
-            init_path = os.path.join(os.path.dirname(__file__), 'init_db.sql')
-            if execute_sql_file(conn, init_path):
-                print("âœ… DonnÃ©es de test insÃ©rÃ©es avec succÃ¨s!")
+                print("[OK] Schema cree avec succes!")
             else:
-                print("âŒ Ã‰chec de l'insertion des donnÃ©es de test")
-                return False
+                print("[ERREUR] Echec de la creation du schema")
+                conn.close()
+                sys.exit(1)
+        else:
+            print(f"[ERREUR] Fichier schema.sql non trouve: {schema_path}")
+            conn.close()
+            sys.exit(1)
         
-        # Afficher un rÃ©sumÃ©
-        print("\nðŸ“Š RÃ‰SUMÃ‰ DE LA BASE DE DONNÃ‰ES:")
+        # Etape 3: Inserer les donnees initiales
+        print("\n" + "=" * 60)
+        print("ETAPE 3: DONNEES INITIALES")
+        print("=" * 60)
+        
+            init_path = os.path.join(os.path.dirname(__file__), 'init_db.sql')
+        
+        if os.path.exists(init_path):
+            print(f"\nExecution de init_db.sql...")
+            if execute_sql_file(conn, init_path):
+                print("[OK] Donnees initiales inserees avec succes!")
+            else:
+                print("[ATTENTION] Echec de l'insertion des donnees initiales")
+            else:
+            print(f"[INFO] Fichier init_db.sql non trouve: {init_path}")
+        
+        # Afficher le resume
+        print("\n" + "=" * 60)
+        print("RESUME DE LA CONFIGURATION")
+        print("=" * 60)
+        
         cursor = conn.cursor()
         
+        # Compter les tables
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public'
+        """)
+        table_count = cursor.fetchone()[0]
+        print(f"\nTables creees: {table_count}")
+        
+        # Compter les roles
+        cursor.execute("SELECT COUNT(*) FROM roles")
+        role_count = cursor.fetchone()[0]
+        print(f"Roles: {role_count}")
+        
+        # Compter les utilisateurs
         cursor.execute("SELECT COUNT(*) FROM users")
-        print(f"   ðŸ‘¥ Utilisateurs: {cursor.fetchone()[0]}")
-        
-        cursor.execute("SELECT COUNT(*) FROM courses")
-        print(f"   ðŸ“š Cours: {cursor.fetchone()[0]}")
-        
-        cursor.execute("SELECT COUNT(*) FROM rooms")
-        print(f"   ðŸ« Salles: {cursor.fetchone()[0]}")
-        
-        cursor.execute("SELECT COUNT(*) FROM course_suggestions WHERE status = 'pending'")
-        print(f"   ðŸ’¡ Suggestions en attente: {cursor.fetchone()[0]}")
+        user_count = cursor.fetchone()[0]
+        print(f"Utilisateurs: {user_count}")
         
         cursor.close()
         conn.close()
         
-        print("\nâœ¨ Configuration terminÃ©e avec succÃ¨s!")
-        print("\nðŸ“ COMPTES DE TEST:")
-        print("   Admin:      admin@univ.fr / password123")
-        print("   Professeur: prof@univ.fr / password123")
-        print("   Ã‰tudiant:   etudiant@univ.fr / password123")
+        print("\n" + "=" * 60)
+        print("[OK] CONFIGURATION TERMINEE!")
+        print("=" * 60)
+        print(f"\nBase de donnees: {db_name}")
+        print(f"Host: {host}:{port}")
+        print(f"Utilisateur: {admin_user}")
         
-        return True
+        print("\nVous pouvez maintenant:")
+        print("1. Demarrer le backend Flask")
+        print("2. Tester l'API avec les comptes de demonstration")
+        print("3. Creer de nouveaux utilisateurs via l'inscription")
         
     except psycopg2.Error as e:
-        print(f"âŒ Erreur PostgreSQL: {e}")
-        return False
+        print(f"\n[ERREUR] PostgreSQL: {e}")
+        sys.exit(1)
     except Exception as e:
-        print(f"âŒ Erreur: {e}")
-        return False
-
-def main():
-    """Point d'entrÃ©e principal"""
-    print("=" * 60)
-    print("ðŸŽ“ CONFIGURATION BASE DE DONNÃ‰ES - GESTION COURS UNIVERSITAIRES")
-    print("=" * 60)
-    
-    # Configuration par dÃ©faut pour dÃ©veloppement local
-    default_config = {
-        'host': 'localhost',
-        'port': '5432',
-        'user': 'postgres',
-        'db_name': 'gestion_cours_db'
-    }
-    
-    print("\nðŸ“‹ Configuration de la connexion PostgreSQL")
-    print("(Appuyez sur EntrÃ©e pour utiliser la valeur par dÃ©faut)\n")
-    
-    host = input(f"Host [{default_config['host']}]: ").strip() or default_config['host']
-    port = input(f"Port [{default_config['port']}]: ").strip() or default_config['port']
-    user = input(f"Utilisateur [{default_config['user']}]: ").strip() or default_config['user']
-    db_name = input(f"Nom de la base [{default_config['db_name']}]: ").strip() or default_config['db_name']
-    
-    password = getpass("Mot de passe PostgreSQL: ")
-    
-    if not password:
-        print("âŒ Le mot de passe est requis!")
-        sys.exit(1)
-    
-    # CrÃ©er la base de donnÃ©es
-    if not create_database(host, port, user, password, db_name):
-        sys.exit(1)
-    
-    # Demander si on veut les donnÃ©es de test
-    init_data_choice = input("\nðŸ“Š InsÃ©rer les donnÃ©es de test? (O/n): ").strip().lower()
-    init_data = init_data_choice != 'n'
-    
-    # Configurer la base de donnÃ©es
-    if setup_database(host, port, user, password, db_name, init_data):
-        print("\nðŸŽ‰ Tout est prÃªt! Vous pouvez maintenant dÃ©marrer l'application.")
-        sys.exit(0)
-    else:
-        print("\nâŒ La configuration a Ã©chouÃ©. Veuillez vÃ©rifier les erreurs ci-dessus.")
+        print(f"\n[ERREUR] {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
-    main()
-
+    setup_database()

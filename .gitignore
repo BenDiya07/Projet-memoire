@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Environnement
+.env
+*.env
+.env.local
+
+# Base de données
+*.db
+*.sqlite
+*.sqlite3
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+*.out
+
+# Fichiers temporaires
+*.tmp
+*.bak
+*.old
+
+# Node modules (si utilisé pour le frontend)
+node_modules/
+package-lock.json
+
+# Certificats et clés
+*.pem
+*.key
+*.cert
+*.crt
+
+# Fichiers de cache
+.cache/
+*.cache
+

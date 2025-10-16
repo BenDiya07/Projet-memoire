@@ -1,6 +1,6 @@
 ﻿"""
 Configuration de l'application Flask
-Support pour dÃ©veloppement local et AWS RDS
+Support pour developpement local et AWS RDS
 """
 
 import os
@@ -13,7 +13,7 @@ load_dotenv()
 class Config:
     """Configuration de base"""
     
-    # ClÃ© secrÃ¨te pour les sessions et JWT
+    # Cle secrete pour les sessions et JWT
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     
     # Configuration JWT
@@ -44,15 +44,15 @@ class Config:
         pass
 
 class DevelopmentConfig(Config):
-    """Configuration pour le dÃ©veloppement local"""
+    """Configuration pour le developpement local"""
     
     DEBUG = True
     TESTING = False
     
-    # Base de donnÃ©es PostgreSQL locale
+    # Base de donnees PostgreSQL locale
     DB_HOST = os.getenv('DB_HOST', 'localhost')
     DB_PORT = os.getenv('DB_PORT', '5432')
-    DB_NAME = os.getenv('DB_NAME', 'university')  # â† ModifiÃ© pour utiliser 'university'
+    DB_NAME = os.getenv('DB_NAME', 'university')  # Modifie pour utiliser 'university'
     DB_USER = os.getenv('DB_USER', 'postgres')
     DB_PASSWORD = os.getenv('DB_PASSWORD', 'postgres')
     
@@ -69,12 +69,12 @@ class ProductionConfig(Config):
     DEBUG = False
     TESTING = False
     
-    # Base de donnÃ©es AWS RDS
+    # Base de donnees AWS RDS
     DB_HOST = os.getenv('RDS_HOSTNAME', 'localhost')
     DB_PORT = os.getenv('RDS_PORT', '5432')
     DB_NAME = os.getenv('RDS_DB_NAME', 'gestion_cours_db')
     DB_USER = os.getenv('RDS_USERNAME', 'postgres')
-    DB_PASSWORD = os.getenv('RDS_PASSWORD', 'postgres')  # Valeur par dÃ©faut pour Ã©viter l'erreur
+    DB_PASSWORD = os.getenv('RDS_PASSWORD', 'postgres')  # Valeur par defaut pour eviter l'erreur
     
     SQLALCHEMY_DATABASE_URI = (
         f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
@@ -89,7 +89,7 @@ class ProductionConfig(Config):
     
     @classmethod
     def init_app(cls, app):
-        """Configuration spÃ©cifique Ã  la production"""
+        """Configuration specifique a la production"""
         Config.init_app(app)
         
         # Log vers CloudWatch si disponible
@@ -106,7 +106,7 @@ class TestingConfig(Config):
     TESTING = True
     DEBUG = True
     
-    # Base de donnÃ©es de test
+    # Base de donnees de test
     DB_HOST = os.getenv('TEST_DB_HOST', 'localhost')
     DB_PORT = os.getenv('TEST_DB_PORT', '5432')
     DB_NAME = os.getenv('TEST_DB_NAME', 'gestion_cours_test_db')
@@ -117,7 +117,7 @@ class TestingConfig(Config):
         f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
     )
     
-    # DÃ©sactiver la protection CSRF pour les tests
+    # Desactiver la protection CSRF pour les tests
     WTF_CSRF_ENABLED = False
 
 # Configuration disponibles
@@ -132,4 +132,3 @@ def get_config():
     """Obtenir la configuration selon l'environnement"""
     env = os.getenv('FLASK_ENV', 'development')
     return config.get(env, config['default'])
-

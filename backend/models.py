@@ -1,5 +1,5 @@
 ﻿"""
-ModÃ¨les SQLAlchemy pour la base de donnÃ©es PostgreSQL
+Modeles SQLAlchemy pour la base de donnees PostgreSQL
 """
 
 from datetime import datetime

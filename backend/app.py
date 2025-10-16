@@ -143,9 +143,9 @@ def create_app(config_name=None):
         # Rôles
         if Role.query.count() == 0:
             roles = [
-                Role(name='admin', description='Administrateur système'),
+                Role(name='admin', description='Administrateur systeme'),
                 Role(name='professor', description='Professeur'),
-                Role(name='student', description='Étudiant')
+                Role(name='student', description='Etudiant')
             ]
             for role in roles:
                 db.session.add(role)
@@ -201,7 +201,7 @@ def create_app(config_name=None):
         print("\nComptes de test:")
         print("   Admin:      admin@univ.fr / password123")
         print("   Professeur: prof@univ.fr / password123")
-        print("   Étudiant:   etudiant@univ.fr / password123")
+        print("   Etudiant:   etudiant@univ.fr / password123")
     
     return app
 

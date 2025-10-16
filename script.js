@@ -189,36 +189,8 @@ document.addEventListener('click', function(e) {
         const text = e.target.textContent;
         const email = text.split(' / ')[0].split(': ')[1];
         const password = text.split(' / ')[1];
-        const role = text.includes('Admin') ? 'admin' : text.includes('Professeur') ? 'professor' : 'student';
         
         document.getElementById('email').value = email;
         document.getElementById('password').value = password;
-        document.getElementById(role).checked = true;
     }
 });
-
-// Fonction de test pour l'inscription
-function testRegistration() {
-    console.log('Test de l\'inscription...');
-    console.log('AuthManager disponible:', typeof authManager);
-    
-    const testUser = {
-        firstName: 'Test',
-        lastName: 'User',
-        email: 'test@example.com',
-        password: 'test123',
-        role: 'student',
-        studentId: 'TEST001'
-    };
-    
-    console.log('Données de test:', testUser);
-    
-    const result = authManager.register(testUser);
-    console.log('Résultat du test:', result);
-    
-    if (result.success) {
-        alert('Test d\'inscription réussi !\n\nUtilisateur créé:\n' + JSON.stringify(result.user, null, 2));
-    } else {
-        alert('Test d\'inscription échoué:\n' + result.message);
-    }
-}

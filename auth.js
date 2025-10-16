@@ -45,7 +45,7 @@ class AuthManager {
     async register(userData) {
         try {
             // Appel API au backend pour l'inscription
-            const response = await fetch('http://localhost:5500/api/auth/register', {
+            const response = await fetch('http://localhost:5001/api/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -270,6 +270,7 @@ class AuthManager {
     // Déconnexion
     logout() {
         localStorage.removeItem('currentUser');
+        sessionStorage.removeItem('login_redirect');
         this.currentUser = null;
         console.log(' Utilisateur déconnecté');
         window.location.href = 'login.html';
@@ -297,7 +298,10 @@ class AuthManager {
             'student': ['emploi-temps']
         };
 
-        const userRole = this.currentUser.role;
+        // Gérer le cas où role est un objet ou une chaîne
+        const userRole = typeof this.currentUser.role === 'object' 
+            ? this.currentUser.role.name 
+            : this.currentUser.role;
         return permissions[userRole] && permissions[userRole].includes(pageName);
     }
 
@@ -318,7 +322,11 @@ class AuthManager {
             return;
         }
 
-        const defaultPage = this.getDefaultPage(this.currentUser.role);
+        // Gérer le cas où role est un objet ou une chaîne
+        const userRole = typeof this.currentUser.role === 'object' 
+            ? this.currentUser.role.name 
+            : this.currentUser.role;
+        const defaultPage = this.getDefaultPage(userRole);
         window.location.href = defaultPage;
     }
 
@@ -370,7 +378,12 @@ class AuthManager {
         if (currentPage === 'login') {
             // Si on est sur la page de login et qu'on est déjà connecté, rediriger
             if (this.isLoggedIn()) {
-                this.redirectToDefaultPage();
+                // Eviter la boucle infinie
+                const redirected = sessionStorage.getItem('login_redirect');
+                if (!redirected) {
+                    sessionStorage.setItem('login_redirect', 'true');
+                    this.redirectToDefaultPage();
+                }
             }
             return;
         }
@@ -409,10 +422,13 @@ class AuthManager {
 
         const user = this.getCurrentUser();
         
+        // Utiliser full_name ou name selon ce qui est disponible
+        const userName = user.full_name || user.name || user.email;
+        
         // Mettre à jour le nom d'utilisateur dans la navigation
         const userInfoElements = document.querySelectorAll('.user-info');
         userInfoElements.forEach(element => {
-            element.textContent = user.name;
+            element.textContent = userName;
         });
 
         // Réinitialiser la navigation avant de la mettre à jour
@@ -434,6 +450,9 @@ class AuthManager {
     updateNavigationForRole(role) {
         const navMenus = document.querySelectorAll('.nav-menu');
         
+        // Gérer le cas où role est un objet ou une chaîne
+        const roleName = typeof role === 'object' ? role.name : role;
+        
         navMenus.forEach(navMenu => {
             // Vérifier si la navigation a déjà été mise à jour
             if (navMenu.dataset.updated === 'true') {
@@ -444,7 +463,7 @@ class AuthManager {
             navMenu.innerHTML = '';
             
             // Ajouter les liens selon le rôle
-            const links = this.getNavigationLinksForRole(role);
+            const links = this.getNavigationLinksForRole(roleName);
             links.forEach(link => {
                 const a = document.createElement('a');
                 a.href = link.href;
@@ -462,6 +481,9 @@ class AuthManager {
     getNavigationLinksForRole(role) {
         const currentPage = this.getCurrentPageName();
         
+        // Gérer le cas où role est un objet ou une chaîne
+        const roleName = typeof role === 'object' ? role.name : role;
+        
         const roleLinks = {
             'admin': [
                 { href: 'dashboard.html', text: 'Dashboard', active: currentPage === 'dashboard' },
@@ -478,7 +500,7 @@ class AuthManager {
             ]
         };
         
-        return roleLinks[role] || [];
+        return roleLinks[roleName] || [];
     }
 
     // Vérifier et rediriger si nécessaire
@@ -515,7 +537,10 @@ class AuthManager {
         
         const pageName = pageNames[currentPage] || currentPage;
         
-        alert(` Accès refusé\n\nEn tant que ${user.name}, vous n'avez pas l'autorisation d'accéder à la page "${pageName}".\n\nVous allez être redirigé vers votre page d'accueil.`);
+        // Utiliser full_name ou name selon ce qui est disponible
+        const userName = user.full_name || user.name || user.email;
+        
+        alert(` Accès refusé\n\nEn tant que ${userName}, vous n'avez pas l'autorisation d'accéder à la page "${pageName}".\n\nVous allez être redirigé vers votre page d'accueil.`);
     }
 
     // Intercepter les clics sur les liens de navigation
@@ -607,7 +632,9 @@ function showUserPermissions() {
         'student': ['emploi-temps']
     };
     
-    console.log(' Permissions pour', user.role + ':', permissions[user.role]);
+    // Gérer le cas où role est un objet ou une chaîne
+    const userRole = typeof user.role === 'object' ? user.role.name : user.role;
+    console.log(' Permissions pour', userRole + ':', permissions[userRole]);
     console.log(' Page actuelle:', authManager.getCurrentPageName());
     console.log(' Accès autorisé:', authManager.canAccessPage(authManager.getCurrentPageName()));
 }
