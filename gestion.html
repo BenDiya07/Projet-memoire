@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion - Gestion des Cours Universitaires</title>
     <script>
         // Appliquer le thème immédiatement pour éviter le flash
-        (function() {
+        (function () {
             const savedTheme = localStorage.getItem('theme') || 'light';
             const savedRole = localStorage.getItem('userRole') || 'student';
             document.documentElement.classList.add(`theme-${savedTheme}`);
@@ -17,6 +18,7 @@
     </script>
     <link rel="stylesheet" href="dashboard-styles.css">
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar">
@@ -75,15 +77,9 @@
             <div class="filters">
                 <select id="professorFilter">
                     <option value="">Tous les professeurs</option>
-                    <option value="prof1">Dr. Martin</option>
-                    <option value="prof2">Dr. Dubois</option>
-                    <option value="prof3">Dr. Leroy</option>
                 </select>
                 <select id="roomFilter">
                     <option value="">Toutes les salles</option>
-                    <option value="A101">Salle A101</option>
-                    <option value="B205">Salle B205</option>
-                    <option value="C301">Salle C301</option>
                 </select>
                 <select id="dayFilter">
                     <option value="">Tous les jours</option>
@@ -122,51 +118,7 @@
                         </tr>
                     </thead>
                     <tbody id="coursesTableBody">
-                        <tr>
-                            <td>001</td>
-                            <td>Mathématiques</td>
-                            <td>Dr. Martin</td>
-                            <td>A101</td>
-                            <td>Lundi</td>
-                            <td>09:00</td>
-                            <td>2h</td>
-                            <td>25</td>
-                            <td><span class="status active">Actif</span></td>
-                            <td>
-                                <button class="btn-icon-small" onclick="editCourse(1)" title="Modifier"></button>
-                                <button class="btn-icon-small" onclick="deleteCourse(1)" title="Supprimer"></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>002</td>
-                            <td>Physique</td>
-                            <td>Dr. Dubois</td>
-                            <td>B205</td>
-                            <td>Mardi</td>
-                            <td>14:00</td>
-                            <td>1h30</td>
-                            <td>20</td>
-                            <td><span class="status active">Actif</span></td>
-                            <td>
-                                <button class="btn-icon-small" onclick="editCourse(2)" title="Modifier"></button>
-                                <button class="btn-icon-small" onclick="deleteCourse(2)" title="Supprimer"></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>003</td>
-                            <td>Informatique</td>
-                            <td>Dr. Leroy</td>
-                            <td>C301</td>
-                            <td>Mercredi</td>
-                            <td>10:30</td>
-                            <td>2h</td>
-                            <td>30</td>
-                            <td><span class="status conflict">Conflit</span></td>
-                            <td>
-                                <button class="btn-icon-small" onclick="editCourse(3)" title="Modifier"></button>
-                                <button class="btn-icon-small" onclick="deleteCourse(3)" title="Supprimer"></button>
-                            </td>
-                        </tr>
+                        <!-- Charge dynamiquement par gestion-script.js -->
                     </tbody>
                 </table>
             </div>
@@ -281,8 +233,154 @@
         </div>
     </div>
 
+    <!-- Modal Modifier un cours -->
+    <div id="editCourseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3> Modifier le cours</h3>
+                <button class="close-btn" onclick="closeModal('editCourseModal')"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCourseForm">
+                    <input type="hidden" id="editCourseId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editCourseName">Nom du cours :</label>
+                            <input type="text" id="editCourseName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editCourseCode">Code du cours :</label>
+                            <input type="text" id="editCourseCode" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editCourseProfessor">Professeur :</label>
+                            <select id="editCourseProfessor" required>
+                                <option value="">Sélectionner un professeur</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editCourseRoom">Salle :</label>
+                            <select id="editCourseRoom" required>
+                                <option value="">Sélectionner une salle</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editCourseStatus">Statut :</label>
+                            <select id="editCourseStatus" required>
+                                <option value="active">Actif</option>
+                                <option value="inactive">Inactif</option>
+                                <option value="conflict">En conflit</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('editCourseModal')">Annuler</button>
+                <button class="btn-primary" onclick="saveEditedCourse()">Enregistrer les modifications</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ajouter un professeur -->
+    <div id="addProfessorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Ajouter un professeur</h3>
+                <button class="close-btn" onclick="closeModal('addProfessorModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addProfessorForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="profFirstName">Prenom :</label>
+                            <input type="text" id="profFirstName" required placeholder="Prenom">
+                        </div>
+                        <div class="form-group">
+                            <label for="profLastName">Nom :</label>
+                            <input type="text" id="profLastName" required placeholder="Nom">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="profEmail">Email :</label>
+                            <input type="email" id="profEmail" required placeholder="prenom.nom@univ.fr">
+                        </div>
+                        <div class="form-group">
+                            <label for="profPassword">Mot de passe :</label>
+                            <input type="password" id="profPassword" required placeholder="Minimum 6 caracteres">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('addProfessorModal')">Annuler</button>
+                <button class="btn-primary" onclick="addProfessor()">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ajouter une salle -->
+    <div id="addRoomModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Ajouter une salle</h3>
+                <button class="close-btn" onclick="closeModal('addRoomModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addRoomForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="roomNumber">Numero de salle :</label>
+                            <input type="text" id="roomNumber" required placeholder="Ex: A101">
+                        </div>
+                        <div class="form-group">
+                            <label for="roomBuilding">Batiment :</label>
+                            <input type="text" id="roomBuilding" placeholder="Ex: Batiment A">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="roomType">Type :</label>
+                            <select id="roomType">
+                                <option value="classroom">Salle de classe</option>
+                                <option value="amphitheater">Amphitheatre</option>
+                                <option value="laboratory">Laboratoire</option>
+                                <option value="computer_room">Salle informatique</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="roomCapacity">Capacite :</label>
+                            <input type="number" id="roomCapacity" min="1" max="500" required placeholder="30">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="roomFloor">Etage :</label>
+                            <input type="number" id="roomFloor" min="0" max="20" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="roomNotes">Notes :</label>
+                            <input type="text" id="roomNotes" placeholder="Informations complementaires">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('addRoomModal')">Annuler</button>
+                <button class="btn-primary" onclick="addRoom()">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
     <script src="auth.js"></script>
     <script src="theme.js"></script>
     <script src="gestion-script.js"></script>
 </body>
+
 </html>

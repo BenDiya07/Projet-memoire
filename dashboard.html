@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Gestion des Cours Universitaires</title>
     <script>
         // Appliquer le thème immédiatement pour éviter le flash
-        (function() {
+        (function () {
             const savedTheme = localStorage.getItem('theme') || 'light';
             const savedRole = localStorage.getItem('userRole') || 'student';
             document.documentElement.classList.add(`theme-${savedTheme}`);
@@ -18,6 +19,7 @@
     <link rel="stylesheet" href="dashboard-styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar">
@@ -44,55 +46,48 @@
 
         <!-- Widgets principaux -->
         <div class="widgets-grid">
-            <!-- Widget 1: Cours planifiés -->
+            <!-- Widget 1: Total cours -->
             <div class="widget">
                 <div class="widget-header">
-                    <h3> Cours planifiés</h3>
-                    <span class="widget-icon"></span>
+                    <h3>Total cours</h3>
                 </div>
                 <div class="widget-content">
-                    <div class="metric-value">127</div>
-                    <div class="metric-label">cours cette semaine</div>
-                    <div class="metric-change positive">+12% vs semaine dernière</div>
+                    <div class="metric-value">0</div>
+                    <div class="metric-label">cours enregistres</div>
                 </div>
             </div>
 
-            <!-- Widget 2: Conflits détectés -->
+            <!-- Widget 2: Conflits detectes -->
             <div class="widget">
                 <div class="widget-header">
-                    <h3> Conflits détectés</h3>
-                    <span class="widget-icon"></span>
+                    <h3>Conflits detectes</h3>
                 </div>
                 <div class="widget-content">
-                    <div class="metric-value">3</div>
+                    <div class="metric-value">0</div>
                     <div class="metric-label">conflits salles/horaires</div>
-                    <div class="metric-change negative">Nécessite attention</div>
+                    <div class="metric-change negative">Necessite attention</div>
                 </div>
             </div>
 
-            <!-- Widget 3: Disponibilité profs -->
+            <!-- Widget 3: Suggestions en attente -->
             <div class="widget">
                 <div class="widget-header">
-                    <h3> Disponibilité profs</h3>
-                    <span class="widget-icon"></span>
+                    <h3>Suggestions en attente</h3>
                 </div>
                 <div class="widget-content">
-                    <div class="metric-value">78%</div>
-                    <div class="metric-label">taux de disponibilité</div>
-                    <div class="metric-change positive">+5% cette semaine</div>
+                    <div class="metric-value">0</div>
+                    <div class="metric-label">suggestions a traiter</div>
                 </div>
             </div>
 
-            <!-- Widget 4: Étudiants impactés -->
+            <!-- Widget 4: Etudiants inscrits -->
             <div class="widget">
                 <div class="widget-header">
-                    <h3>   Étudiants impactés</h3>
-                    <span class="widget-icon"></span>
+                    <h3>Etudiants inscrits</h3>
                 </div>
                 <div class="widget-content">
-                    <div class="metric-value">45</div>
-                    <div class="metric-label">étudiants concernés</div>
-                    <div class="metric-change neutral">Stable</div>
+                    <div class="metric-value">0</div>
+                    <div class="metric-label">etudiants dans le systeme</div>
                 </div>
             </div>
         </div>
@@ -177,106 +172,17 @@
                     <span class="stat-badge rejected">2 rejetées</span>
                 </div>
             </div>
-            
+
             <div class="suggestions-list">
-                <div class="suggestion-card pending">
-                    <div class="suggestion-header">
-                        <h4>Mathématiques Avancées</h4>
-                        <span class="suggestion-status pending">En attente</span>
-                    </div>
-                    <div class="suggestion-details">
-                        <p><strong>Professeur:</strong> Dr. Martin</p>
-                        <p><strong>Code:</strong> MATH-301</p>
-                        <p><strong>Planning proposé:</strong> Lundi 09:00-11:00 (2h, Hebdomadaire)</p>
-                        <p><strong>Salle:</strong> Amphithéâtre, 50 places</p>
-                        <p><strong>Date de suggestion:</strong> 15 Janvier 2024</p>
-                    </div>
-                    <div class="suggestion-justification">
-                        <p><strong>Justification:</strong> Ce cours est essentiel pour préparer les étudiants aux examens de fin d'année. Il couvre les concepts avancés non abordés dans le cursus actuel.</p>
-                    </div>
-                    <div class="suggestion-actions">
-                        <button class="btn-success" onclick="approveSuggestion(1)">
-                            <span class="btn-icon"></span>
-                            Approuver
-                        </button>
-                        <button class="btn-danger" onclick="rejectSuggestion(1)">
-                            <span class="btn-icon"></span>
-                            Rejeter
-                        </button>
-                        <button class="btn-secondary" onclick="viewSuggestionDetails(1)">
-                            <span class="btn-icon"></span>
-                            Voir détails
-                        </button>
-                    </div>
-                </div>
-
-                <div class="suggestion-card pending">
-                    <div class="suggestion-header">
-                        <h4>Physique Quantique</h4>
-                        <span class="suggestion-status pending">En attente</span>
-                    </div>
-                    <div class="suggestion-details">
-                        <p><strong>Professeur:</strong> Dr. Dubois</p>
-                        <p><strong>Code:</strong> PHYS-401</p>
-                        <p><strong>Planning proposé:</strong> Mercredi 14:00-16:00 (2h, Hebdomadaire)</p>
-                        <p><strong>Salle:</strong> Laboratoire, 25 places</p>
-                        <p><strong>Date de suggestion:</strong> 12 Janvier 2024</p>
-                    </div>
-                    <div class="suggestion-justification">
-                        <p><strong>Justification:</strong> Cours spécialisé pour les étudiants en master. Nécessite un laboratoire équipé pour les expériences pratiques.</p>
-                    </div>
-                    <div class="suggestion-actions">
-                        <button class="btn-success" onclick="approveSuggestion(2)">
-                            <span class="btn-icon"></span>
-                            Approuver
-                        </button>
-                        <button class="btn-danger" onclick="rejectSuggestion(2)">
-                            <span class="btn-icon"></span>
-                            Rejeter
-                        </button>
-                        <button class="btn-secondary" onclick="viewSuggestionDetails(2)">
-                            <span class="btn-icon"></span>
-                            Voir détails
-                        </button>
-                    </div>
-                </div>
-
-                <div class="suggestion-card pending">
-                    <div class="suggestion-header">
-                        <h4>Algorithmes Avancés</h4>
-                        <span class="suggestion-status pending">En attente</span>
-                    </div>
-                    <div class="suggestion-details">
-                        <p><strong>Professeur:</strong> Dr. Leroy</p>
-                        <p><strong>Code:</strong> INFO-302</p>
-                        <p><strong>Planning proposé:</strong> Vendredi 10:30-12:30 (2h, Hebdomadaire)</p>
-                        <p><strong>Salle:</strong> Salle informatique, 30 places</p>
-                        <p><strong>Date de suggestion:</strong> 10 Janvier 2024</p>
-                    </div>
-                    <div class="suggestion-justification">
-                        <p><strong>Justification:</strong> Cours complémentaire pour les étudiants en informatique. Focus sur les algorithmes de tri et de recherche avancés.</p>
-                    </div>
-                    <div class="suggestion-actions">
-                        <button class="btn-success" onclick="approveSuggestion(3)">
-                            <span class="btn-icon"></span>
-                            Approuver
-                        </button>
-                        <button class="btn-danger" onclick="rejectSuggestion(3)">
-                            <span class="btn-icon"></span>
-                            Rejeter
-                        </button>
-                        <button class="btn-secondary" onclick="viewSuggestionDetails(3)">
-                            <span class="btn-icon"></span>
-                            Voir détails
-                        </button>
-                    </div>
-                </div>
+                <!-- Chargees dynamiquement par dashboard-script.js -->
             </div>
         </div>
     </main>
 
+    <script src="config.js"></script>
     <script src="auth.js"></script>
     <script src="theme.js"></script>
     <script src="dashboard-script.js"></script>
 </body>
+
 </html>

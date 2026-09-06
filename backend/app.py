@@ -6,9 +6,11 @@ Backend API pour PostgreSQL
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
+from sqlalchemy import text
 from config import get_config
 from models import db
 import os
+import logging
 
 def create_app(config_name=None):
     """Factory pour créer l'application Flask"""
@@ -64,10 +66,12 @@ def create_app(config_name=None):
     from routes.auth import auth_bp
     from routes.courses import courses_bp
     from routes.suggestions import suggestions_bp
+    from routes.stats import stats_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(courses_bp)
     app.register_blueprint(suggestions_bp)
+    app.register_blueprint(stats_bp)
     
     # Route racine
     @app.route('/')
@@ -89,7 +93,7 @@ def create_app(config_name=None):
         """Vérification de l'état du serveur"""
         try:
             # Vérifier la connexion à la base de données
-            db.session.execute('SELECT 1')
+            db.session.execute(text('SELECT 1'))
             db_status = 'connected'
         except Exception as e:
             db_status = f'error: {str(e)}'
@@ -107,6 +111,13 @@ def create_app(config_name=None):
             'success': False,
             'message': 'Ressource non trouvée'
         }), 404
+    
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            'success': False,
+            'message': 'Requête invalide: ' + str(error)
+        }), 400
     
     @app.errorhandler(500)
     def internal_error(error):
@@ -154,6 +165,7 @@ def create_app(config_name=None):
         # Utilisateurs de test
         if User.query.count() == 0:
             password_hash = bcrypt.hashpw(b'password123', bcrypt.gensalt()).decode('utf-8')
+            roles = {role.name: role.id for role in Role.query.all()}
             
             users = [
                 User(
@@ -161,14 +173,14 @@ def create_app(config_name=None):
                     password_hash=password_hash,
                     first_name='Admin',
                     last_name='Principal',
-                    role_id=1
+                    role_id=roles.get('admin')
                 ),
                 User(
                     email='prof@univ.fr',
                     password_hash=password_hash,
                     first_name='Jean',
                     last_name='Martin',
-                    role_id=2
+                    role_id=roles.get('professor')
                 ),
                 User(
                     email='etudiant@univ.fr',
@@ -176,7 +188,7 @@ def create_app(config_name=None):
                     first_name='Sophie',
                     last_name='Laurent',
                     student_id='2024001',
-                    role_id=3
+                    role_id=roles.get('student')
                 )
             ]
             for user in users:
@@ -210,7 +222,7 @@ if __name__ == '__main__':
     app = create_app()
     app.run(
         host='0.0.0.0',
-        port=int(os.getenv('PORT', 5000)),
+        port=int(os.getenv('PORT', 5001)),
         debug=os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
     )
 

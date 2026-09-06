@@ -5,6 +5,7 @@ Support pour développement local et AWS RDS
 
 import os
 from datetime import timedelta
+from urllib.parse import quote_plus
 from dotenv import load_dotenv
 
 # Charger les variables d'environnement
@@ -57,7 +58,7 @@ class DevelopmentConfig(Config):
     DB_PASSWORD = os.getenv('DB_PASSWORD', 'postgres')
     
     SQLALCHEMY_DATABASE_URI = (
-        f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+        f'postgresql://{DB_USER}:{quote_plus(DB_PASSWORD)}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
     )
     
     # Logging plus verbeux
@@ -77,7 +78,7 @@ class ProductionConfig(Config):
     DB_PASSWORD = os.getenv('RDS_PASSWORD', 'postgres')  # Valeur par défaut pour éviter l'erreur
     
     SQLALCHEMY_DATABASE_URI = (
-        f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+        f'postgresql://{DB_USER}:{quote_plus(DB_PASSWORD)}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
     )
     
     # SSL pour AWS RDS

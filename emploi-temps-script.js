@@ -1,137 +1,305 @@
-// Emploi du temps Script
+// Emploi du temps Script - Integration API
 
 let currentView = 'weekly';
 let currentDate = new Date();
+let allSchedules = [];
 
 // Initialisation
-document.addEventListener('DOMContentLoaded', function() {
-    initializeSchedule();
-    setupEventListeners();
+document.addEventListener('DOMContentLoaded', async function () {
+    if (typeof authManager !== 'undefined') {
+        const userRole = localStorage.getItem('userRole');
+        document.documentElement.className = `role-${userRole}`;
+        await loadInitialData();
+        setupEventListeners();
+        setupAnimations();
+    }
 });
 
-// Configuration des événements
+async function loadInitialData() {
+    try {
+        await Promise.all([loadSchedules(), loadFilters()]);
+        updateViewContent();
+    } catch (error) {
+        console.error('Erreur initialisation:', error);
+    }
+}
+
 function setupEventListeners() {
-    // Filtres
-    const filters = ['professorFilter', 'roomFilter', 'subjectFilter'];
-    filters.forEach(filterId => {
+    ['professorFilter', 'roomFilter'].forEach(filterId => {
         const filter = document.getElementById(filterId);
-        if (filter) {
-            filter.addEventListener('change', applyFilters);
+        if (filter) filter.addEventListener('change', updateViewContent);
+    });
+    const subjectFilter = document.getElementById('subjectFilter');
+    if (subjectFilter) subjectFilter.addEventListener('input', updateViewContent);
+}
+
+// ============================================
+// API DATA LOADING
+// ============================================
+
+async function loadSchedules() {
+    try {
+        const response = await authManager.fetchWithAuth('/courses/schedule');
+        if (!response) return;
+        const data = await response.json();
+        if (data.success) {
+            allSchedules = data.schedules;
         }
+    } catch (error) {
+        console.error('Erreur chargement emploi du temps:', error);
+    }
+}
+
+async function loadFilters() {
+    try {
+        const profRes = await authManager.fetchWithAuth('/auth/users?role=professor');
+        if (profRes) {
+            const profData = await profRes.json();
+            if (profData.success) {
+                populateDropdown('professorFilter', profData.users, u => ({
+                    value: u.full_name || `${u.first_name} ${u.last_name}`,
+                    text: u.full_name || `${u.first_name} ${u.last_name}`
+                }));
+            }
+        }
+        const roomRes = await authManager.fetchWithAuth('/courses/rooms');
+        if (roomRes) {
+            const roomData = await roomRes.json();
+            if (roomData.success) {
+                populateDropdown('roomFilter', roomData.rooms, r => ({
+                    value: r.room_number,
+                    text: `Salle ${r.room_number}`
+                }));
+            }
+        }
+    } catch (error) {
+        console.error('Erreur chargement filtres:', error);
+    }
+}
+
+function populateDropdown(id, items, mapper) {
+    const select = document.getElementById(id);
+    if (!select) return;
+    const firstOption = select.options[0];
+    select.innerHTML = '';
+    if (firstOption) select.appendChild(firstOption);
+    items.forEach(item => {
+        const info = mapper(item);
+        const option = document.createElement('option');
+        option.value = info.value;
+        option.textContent = info.text;
+        select.appendChild(option);
     });
 }
 
-// Initialisation du planning
-function initializeSchedule() {
-    updateCurrentPeriod();
-    generateScheduleData();
-}
+// ============================================
+// VIEW MANAGEMENT
+// ============================================
 
-// Changer de vue
 function switchView(view) {
     currentView = view;
-    
-    // Mettre à jour les boutons
-    document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    document.querySelector(`[data-view="${view}"]`).classList.add('active');
-    
-    // Afficher la vue correspondante
-    document.querySelectorAll('.schedule-view').forEach(view => {
-        view.classList.remove('active');
-    });
-    document.getElementById(view + 'View').classList.add('active');
-    
-    // Mettre à jour le contenu selon la vue
+    document.querySelectorAll('.view-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
+    document.querySelectorAll('.schedule-view').forEach(v => v.classList.toggle('active', v.id === view + 'View'));
+    updateCurrentPeriod();
     updateViewContent();
 }
 
-// Mettre à jour le contenu selon la vue
 function updateViewContent() {
-    switch(currentView) {
-        case 'weekly':
-            updateWeeklyView();
-            break;
-        case 'daily':
-            updateDailyView();
-            break;
-        case 'room':
-            updateRoomView();
-            break;
-        case 'professor':
-            updateProfessorView();
-            break;
+    const filteredSchedules = filterSchedules(allSchedules);
+    switch (currentView) {
+        case 'weekly': renderWeeklyView(filteredSchedules); break;
+        case 'daily': renderDailyView(filteredSchedules); break;
+        case 'room': renderRoomView(filteredSchedules); break;
+        case 'professor': renderProfessorView(filteredSchedules); break;
     }
 }
 
-// Vue hebdomadaire
-function updateWeeklyView() {
-    // Le contenu est déjà dans le HTML, on peut ajouter des interactions
-    const courseSlots = document.querySelectorAll('.course-slot');
-    courseSlots.forEach(slot => {
-        slot.addEventListener('click', function() {
-            const courseTitle = this.querySelector('.course-title').textContent;
-            alert(`Détails du cours : ${courseTitle}\n\nCliquez sur "Modifier" dans la page Gestion pour plus d'options.`);
-        });
+function applyFilters() {
+    updateViewContent();
+}
+
+function filterSchedules(schedules) {
+    const profFilter = document.getElementById('professorFilter')?.value || '';
+    const roomFilter = document.getElementById('roomFilter')?.value || '';
+    const subFilter = (document.getElementById('subjectFilter')?.value || '').toLowerCase();
+
+    return schedules.filter(s => {
+        const profName = s.course?.professor?.name || '';
+        const matchesProf = !profFilter || profName === profFilter;
+        const matchesRoom = !roomFilter || s.room?.room_number === roomFilter;
+        const matchesSub = !subFilter || (s.course?.course_name || '').toLowerCase().includes(subFilter);
+        return matchesProf && matchesRoom && matchesSub;
     });
 }
 
-// Vue journalière
-function updateDailyView() {
-    const dailyDate = document.getElementById('dailyDate');
-    if (dailyDate) {
-        const options = { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        };
-        dailyDate.textContent = currentDate.toLocaleDateString('fr-FR', options);
+// ============================================
+// RENDERING FUNCTIONS
+// ============================================
+
+function renderWeeklyView(schedules) {
+    const days = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi'];
+    days.forEach(day => {
+        const container = document.getElementById(`day-${day}`);
+        if (container) container.innerHTML = '';
+    });
+
+    schedules.forEach(s => {
+        const day = (s.day_of_week || '').toLowerCase();
+        const container = document.getElementById(`day-${day}`);
+        if (!container) return;
+
+        const slot = document.createElement('div');
+        slot.className = 'course-slot';
+        if (s.course?.status === 'conflict') slot.classList.add('conflict');
+
+        const startRow = timeToGridRow(s.start_time);
+        const endRow = timeToGridRow(s.end_time);
+        slot.style.gridRow = `${startRow} / ${endRow}`;
+
+        slot.innerHTML = `
+            <div class="course-title">${s.course?.course_name || 'N/A'}</div>
+            <div class="course-details">${s.course?.professor?.name || 'N/A'} - ${s.room?.room_number || 'N/A'}</div>
+            <div class="course-time">${s.start_time}-${s.end_time}</div>
+        `;
+        slot.onclick = () => alert(
+            `Cours: ${s.course?.course_name}\nProfesseur: ${s.course?.professor?.name}\nSalle: ${s.room?.room_number}\nCapacite: ${s.room?.capacity}`
+        );
+        container.appendChild(slot);
+    });
+}
+
+function renderDailyView(schedules) {
+    const container = document.getElementById('dailyTimeline');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+    const currentDayName = dayNames[currentDate.getDay()];
+    const daySchedules = schedules
+        .filter(s => (s.day_of_week || '').toLowerCase() === currentDayName.toLowerCase())
+        .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+
+    if (daySchedules.length === 0) {
+        container.innerHTML = '<div class="no-data">Aucun cours prevu pour ce jour.</div>';
+        return;
     }
-}
 
-// Vue par salle
-function updateRoomView() {
-    // Le contenu est déjà dans le HTML
-    const roomCards = document.querySelectorAll('.room-card');
-    roomCards.forEach(card => {
-        card.addEventListener('click', function() {
-            const roomName = this.querySelector('h4').textContent;
-            alert(`Détails de la salle : ${roomName}\n\nCliquez sur "Gestion" pour modifier les informations de la salle.`);
-        });
+    daySchedules.forEach(s => {
+        const item = document.createElement('div');
+        item.className = 'timeline-item';
+        item.innerHTML = `
+            <div class="timeline-time">${s.start_time} - ${s.end_time}</div>
+            <div class="timeline-content">
+                <div class="timeline-title">${s.course?.course_name}</div>
+                <div class="timeline-details">${s.course?.professor?.name || 'N/A'} - Salle ${s.room?.room_number || 'N/A'} - ${s.course?.enrolled_students || 0} etudiants</div>
+            </div>
+        `;
+        container.appendChild(item);
     });
 }
 
-// Vue par professeur
-function updateProfessorView() {
-    // Le contenu est déjà dans le HTML
-    const professorCards = document.querySelectorAll('.professor-card');
-    professorCards.forEach(card => {
-        card.addEventListener('click', function() {
-            const professorName = this.querySelector('h4').textContent;
-            alert(`Détails du professeur : ${professorName}\n\nCliquez sur "Gestion" pour modifier les informations du professeur.`);
-        });
+function renderRoomView(schedules) {
+    const container = document.getElementById('roomViewContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const rooms = {};
+    schedules.forEach(s => {
+        const rName = s.room?.room_number || 'Inconnue';
+        if (!rooms[rName]) rooms[rName] = { info: s.room, schedules: [] };
+        rooms[rName].schedules.push(s);
+    });
+
+    Object.values(rooms).forEach(room => {
+        const card = document.createElement('div');
+        card.className = 'room-card';
+        card.innerHTML = `
+            <div class="room-header">
+                <h4>Salle ${room.info?.room_number}</h4>
+                <span class="room-status ${room.info?.is_available ? 'available' : 'occupied'}">
+                    ${room.info?.is_available ? 'Disponible' : 'Occupee'}
+                </span>
+            </div>
+            <div class="room-schedule">
+                ${room.schedules.map(s => `
+                    <div class="room-slot occupied">
+                        <span class="time">${s.day_of_week} ${s.start_time}-${s.end_time}</span>
+                        <span class="course">${s.course?.course_name} - ${s.course?.professor?.name || 'N/A'}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        container.appendChild(card);
     });
 }
 
-// Navigation temporelle
-function previousPeriod() {
+function renderProfessorView(schedules) {
+    const container = document.getElementById('professorViewContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const profs = {};
+    schedules.forEach(s => {
+        const pName = s.course?.professor?.name || 'Inconnu';
+        if (!profs[pName]) profs[pName] = [];
+        profs[pName].push(s);
+    });
+
+    Object.entries(profs).forEach(([name, profSchedules]) => {
+        const card = document.createElement('div');
+        card.className = 'professor-card';
+        card.innerHTML = `
+            <div class="professor-header">
+                <h4>${name}</h4>
+                <span class="professor-status active">Actif</span>
+            </div>
+            <div class="professor-schedule">
+                ${profSchedules.map(s => `
+                    <div class="prof-slot">
+                        <span class="day">${s.day_of_week}</span>
+                        <span class="time">${s.start_time}-${s.end_time}</span>
+                        <span class="course">${s.course?.course_name} - ${s.room?.room_number || 'N/A'}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+// ============================================
+// HELPERS
+// ============================================
+
+function timeToGridRow(timeStr) {
+    if (!timeStr) return 1;
+    const [h, m] = timeStr.split(':').map(Number);
+    return (h - 8) * 2 + 1 + (m >= 30 ? 1 : 0);
+}
+
+function updateCurrentPeriod() {
+    const el = document.getElementById('currentPeriod');
+    if (!el) return;
+    const options = { day: 'numeric', month: 'long', year: 'numeric' };
     if (currentView === 'weekly') {
-        currentDate.setDate(currentDate.getDate() - 7);
-    } else if (currentView === 'daily') {
-        currentDate.setDate(currentDate.getDate() - 1);
+        const start = new Date(currentDate);
+        start.setDate(currentDate.getDate() - currentDate.getDay() + 1);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 4);
+        el.textContent = `Semaine du ${start.toLocaleDateString('fr-FR', options)}`;
+    } else {
+        el.textContent = currentDate.toLocaleDateString('fr-FR', { ...options, weekday: 'long' });
     }
+}
+
+function previousPeriod() {
+    currentDate.setDate(currentDate.getDate() - (currentView === 'weekly' ? 7 : 1));
     updateCurrentPeriod();
     updateViewContent();
 }
 
 function nextPeriod() {
-    if (currentView === 'weekly') {
-        currentDate.setDate(currentDate.getDate() + 7);
-    } else if (currentView === 'daily') {
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
+    currentDate.setDate(currentDate.getDate() + (currentView === 'weekly' ? 7 : 1));
     updateCurrentPeriod();
     updateViewContent();
 }
@@ -142,163 +310,19 @@ function goToToday() {
     updateViewContent();
 }
 
-// Mettre à jour la période affichée
-function updateCurrentPeriod() {
-    const currentPeriodElement = document.getElementById('currentPeriod');
-    if (!currentPeriodElement) return;
-
-    if (currentView === 'weekly') {
-        const startOfWeek = new Date(currentDate);
-        startOfWeek.setDate(currentDate.getDate() - currentDate.getDay() + 1);
-        
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-        
-        const options = { day: 'numeric', month: 'long', year: 'numeric' };
-        currentPeriodElement.textContent = `Semaine du ${startOfWeek.toLocaleDateString('fr-FR', options)}`;
-    } else if (currentView === 'daily') {
-        const options = { 
-            weekday: 'long', 
-            day: 'numeric', 
-            month: 'long', 
-            year: 'numeric' 
-        };
-        currentPeriodElement.textContent = currentDate.toLocaleDateString('fr-FR', options);
-    }
-}
-
-// Générer des données de planning (simulation)
-function generateScheduleData() {
-    // Cette fonction pourrait générer des données dynamiques
-    // Pour l'instant, on utilise les données statiques du HTML
-}
-
-// Appliquer les filtres
-function applyFilters() {
-    const professorFilter = document.getElementById('professorFilter').value;
-    const roomFilter = document.getElementById('roomFilter').value;
-    const subjectFilter = document.getElementById('subjectFilter').value;
-
-    // Filtrer les éléments selon les critères
-    const courseSlots = document.querySelectorAll('.course-slot');
-    courseSlots.forEach(slot => {
-        let show = true;
-        
-        if (professorFilter) {
-            const professor = slot.querySelector('.course-details').textContent;
-            if (!professor.includes(professorFilter)) {
-                show = false;
-            }
-        }
-        
-        if (roomFilter && show) {
-            const room = slot.querySelector('.course-details').textContent;
-            if (!room.includes(roomFilter)) {
-                show = false;
-            }
-        }
-        
-        if (subjectFilter && show) {
-            const subject = slot.querySelector('.course-title').textContent.toLowerCase();
-            if (!subject.includes(subjectFilter.toLowerCase())) {
-                show = false;
-            }
-        }
-        
-        slot.style.display = show ? 'block' : 'none';
-    });
-
-    alert(' Filtres appliqués !');
-}
-
-// Actions d'impression et d'export
-function printSchedule() {
-    window.print();
-}
-
-function exportSchedule() {
-    alert(' Export en PDF en cours...\n\nLe fichier sera téléchargé dans quelques instants.');
-    
-    // Simulation d'export
-    setTimeout(() => {
-        alert(' Export terminé ! Le fichier PDF a été téléchargé.');
-    }, 2000);
-}
-
-function shareSchedule() {
-    const shareData = {
-        title: 'Emploi du temps - Université',
-        text: 'Consultez l\'emploi du temps de l\'université',
-        url: window.location.href
-    };
-
-    if (navigator.share) {
-        navigator.share(shareData);
-    } else {
-        // Fallback pour les navigateurs qui ne supportent pas l'API Share
-        const url = window.location.href;
-        navigator.clipboard.writeText(url).then(() => {
-            alert(' Lien copié dans le presse-papiers !');
-        }).catch(() => {
-            alert(' Impossible de copier le lien. Veuillez le copier manuellement :\n' + url);
-        });
-    }
-}
-
-// La fonction logout est maintenant gérée par auth.js
-
-// La gestion des accès est maintenant centralisée dans auth.js
-
-// Animation d'entrée
-document.addEventListener('DOMContentLoaded', function() {
+function setupAnimations() {
     const elements = document.querySelectorAll('.schedule-view, .view-controls, .schedule-filters');
-    
-    elements.forEach((element, index) => {
-        element.style.opacity = '0';
-        element.style.transform = 'translateY(20px)';
-        
+    elements.forEach((el, i) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'all 0.5s ease';
         setTimeout(() => {
-            element.style.transition = 'all 0.5s ease';
-            element.style.opacity = '1';
-            element.style.transform = 'translateY(0)';
-        }, index * 100);
-    });
-});
-
-// Gestion des conflits visuels
-function highlightConflicts() {
-    const conflictElements = document.querySelectorAll('.conflict, .conflict-indicator');
-    conflictElements.forEach(element => {
-        element.style.animation = 'pulse 2s infinite';
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, i * 100);
     });
 }
 
-// CSS pour l'animation de pulsation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.5; }
-        100% { opacity: 1; }
-    }
-`;
-document.head.appendChild(style);
-
-// Démarrer l'animation des conflits
-setTimeout(highlightConflicts, 1000);
-
-// Mise à jour automatique de l'heure
-function updateTime() {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('fr-FR');
-    
-    // Mettre à jour l'heure dans l'interface si nécessaire
-    const timeElements = document.querySelectorAll('.current-time');
-    timeElements.forEach(element => {
-        element.textContent = timeString;
-    });
-}
-
-// Mettre à jour l'heure toutes les minutes
-setInterval(updateTime, 60000);
-updateTime(); // Mise à jour immédiate
+function printSchedule() { window.print(); }
+function exportSchedule() { alert('Export PDF lance...'); }
+function shareSchedule() { console.log('Partage...'); }

@@ -334,3 +334,154 @@ def get_roles():
             'message': f'Erreur: {str(e)}'
         }), 500
 
+# ============================================
+# CREER UN PROFESSEUR (Admin seulement)
+# ============================================
+@auth_bp.route('/professors', methods=['POST'])
+@jwt_required()
+def create_professor():
+    """Ajouter un nouveau professeur"""
+    try:
+        claims = get_jwt()
+        if claims.get('role') != 'admin':
+            return jsonify({'success': False, 'message': 'Accès refusé'}), 403
+
+        data = request.get_json()
+        required = ['firstName', 'lastName', 'email', 'password']
+        missing = [f for f in required if not data.get(f)]
+        if missing:
+            return jsonify({
+                'success': False,
+                'message': f'Champs manquants: {", ".join(missing)}'
+            }), 400
+
+        if User.query.filter_by(email=data['email']).first():
+            return jsonify({
+                'success': False,
+                'message': 'Un compte avec cet email existe déjà'
+            }), 409
+
+        role = Role.query.filter_by(name='professor').first()
+        if not role:
+            return jsonify({
+                'success': False,
+                'message': 'Rôle professeur introuvable'
+            }), 500
+
+        password_hash = bcrypt.hashpw(
+            data['password'].encode('utf-8'), bcrypt.gensalt()
+        ).decode('utf-8')
+
+        professor = User(
+            email=data['email'],
+            password_hash=password_hash,
+            first_name=data['firstName'],
+            last_name=data['lastName'],
+            role_id=role.id,
+            is_active=True
+        )
+        db.session.add(professor)
+        db.session.commit()
+
+        audit_log = AuditLog(
+            user_id=get_jwt_identity(),
+            action='PROFESSOR_CREATE',
+            table_name='users',
+            record_id=professor.id,
+            new_values={'email': professor.email},
+            ip_address=request.remote_addr
+        )
+        db.session.add(audit_log)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Professeur créé avec succès',
+            'professor': professor.to_dict()
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Erreur: {str(e)}'
+        }), 500
+
+# ============================================
+# CREER UNE SALLE (Admin seulement)
+# ============================================
+@auth_bp.route('/rooms', methods=['POST'])
+@jwt_required()
+def create_room():
+    """Ajouter une nouvelle salle"""
+    try:
+        claims = get_jwt()
+        if claims.get('role') != 'admin':
+            return jsonify({'success': False, 'message': 'Accès refusé'}), 403
+
+        from models import Room
+        data = request.get_json()
+        required = ['room_number', 'capacity']
+        missing = [f for f in required if not data.get(f)]
+        if missing:
+            return jsonify({
+                'success': False,
+                'message': f'Champs manquants: {", ".join(missing)}'
+            }), 400
+
+        if Room.query.filter_by(room_number=data['room_number']).first():
+            return jsonify({
+                'success': False,
+                'message': 'Une salle avec ce numéro existe déjà'
+            }), 409
+
+        room = Room(
+            room_number=data['room_number'],
+            building=data.get('building', ''),
+            room_type=data.get('room_type', 'classroom'),
+            capacity=int(data['capacity']),
+            floor=data.get('floor'),
+            is_available=True,
+            notes=data.get('notes', '')
+        )
+        db.session.add(room)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Salle créée avec succès',
+            'room': room.to_dict()
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Erreur: {str(e)}'
+        }), 500
+
+# ============================================
+# LISTE DES UTILISATEURS
+# ============================================
+@auth_bp.route('/users', methods=['GET'])
+@jwt_required()
+def get_users():
+    """Obtenir la liste des utilisateurs avec filtrage par rôle"""
+    try:
+        role_name = request.args.get('role')
+        
+        query = User.query
+        if role_name:
+            query = query.join(Role).filter(Role.name == role_name)
+        
+        users = query.all()
+        return jsonify({
+            'success': True,
+            'users': [user.to_dict() for user in users]
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Erreur: {str(e)}'
+        }), 500

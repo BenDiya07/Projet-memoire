@@ -352,6 +352,8 @@ class CourseSuggestion(db.Model):
             data['professor_email'] = self.professor.email
         
         # Renommer les champs pour correspondre au frontend
+        data['name'] = self.course_name
+        data['code'] = self.course_code
         data['day'] = data['preferred_day']
         data['time'] = data['preferred_time']
         data['duration'] = data['duration_hours']

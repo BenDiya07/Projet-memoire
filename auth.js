@@ -1,563 +1,374 @@
 // Système d'authentification et gestion des accès
+
 class AuthManager {
     constructor() {
         this.currentUser = null;
         this.init();
     }
 
-    // Initialisation
     init() {
         this.loadUserFromStorage();
-        
-        // Délai pour éviter les conflits avec les événements de saisie
         setTimeout(() => {
             this.setupPageProtection();
-            this.interceptNavigation();
         }, 200);
     }
 
-    // Charger l'utilisateur depuis le stockage
+    // Normaliser le rôle: retourne toujours une string
+    _getRole(user) {
+        if (!user) return null;
+        if (typeof user.role === 'string') return user.role;
+        if (user.role && typeof user.role === 'object') return user.role.name;
+        return null;
+    }
+
+    _getFullName(user) {
+        if (!user) return 'Utilisateur';
+        if (user.full_name) return user.full_name;
+        if (user.first_name && user.last_name) return `${user.first_name} ${user.last_name}`;
+        if (user.name) return user.name;
+        return user.email || 'Utilisateur';
+    }
+
+    // --- Stockage ---
     loadUserFromStorage() {
         try {
             const userData = localStorage.getItem('currentUser');
             if (userData) {
                 this.currentUser = JSON.parse(userData);
-                console.log(' Utilisateur chargé:', this.currentUser);
             }
         } catch (error) {
-            console.error(' Erreur lors du chargement de l\'utilisateur:', error);
-            this.logout();
+            console.error('Erreur chargement utilisateur:', error);
+            this._clearStorage();
         }
     }
 
-    // Sauvegarder l'utilisateur dans le stockage
     saveUserToStorage(user) {
         try {
             localStorage.setItem('currentUser', JSON.stringify(user));
             this.currentUser = user;
-            console.log(' Utilisateur sauvegardé:', user);
         } catch (error) {
-            console.error(' Erreur lors de la sauvegarde:', error);
+            console.error('Erreur sauvegarde utilisateur:', error);
         }
     }
 
-    // Inscription - Utilise l'API backend
-    async register(userData) {
+    _clearStorage() {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('registeredUsers');
+        this.currentUser = null;
+    }
+
+    // --- Auth ---
+    getAuthHeader() {
+        const token = localStorage.getItem('token');
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+    }
+
+    async fetchWithAuth(endpoint, options = {}) {
+        const url = endpoint.startsWith('http') ? endpoint : `${CONFIG.API_BASE_URL}${endpoint}`;
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(options.headers || {}),
+            ...this.getAuthHeader()
+        };
+        const finalOptions = { ...options, headers };
+
         try {
-            // Appel API au backend pour l'inscription
-            const response = await fetch('http://localhost:5500/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userData)
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                console.log('✅ Inscription réussie via API:', data.user);
-                
-                return {
-                    success: true,
-                    user: data.user,
-                    message: data.message || 'Inscription réussie'
-                };
-            } else {
-                return {
-                    success: false,
-                    message: data.message || 'Erreur lors de l\'inscription'
-                };
+            const response = await fetch(url, finalOptions);
+            if (response.status === 401) {
+                this.logout();
+                return null;
             }
+            return response;
         } catch (error) {
-            console.error('❌ Erreur lors de l\'inscription:', error);
-            
-            // Fallback: inscription locale si le backend n'est pas disponible
-            return this.registerFallback(userData);
+            console.error(`Erreur API (${url}):`, error);
+            throw error;
         }
     }
-    
-    // Fallback local si le backend n'est pas disponible
-    registerFallback(userData) {
+
+    // --- Inscription ---
+    async register(userData) {
         try {
-            // Vérifier si l'utilisateur existe déjà
-            const existingUsers = this.getRegisteredUsers();
-            const userExists = existingUsers.some(user => user.email === userData.email);
-            
-            if (userExists) {
-                return {
-                    success: false,
-                    message: 'Un compte avec cet email existe déjà'
-                };
+            const response = await fetch(`${CONFIG.API_BASE_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
+            const data = await response.json();
+            if (data.success) {
+                return { success: true, user: data.user, message: data.message };
             }
-            
-            // Créer le nouvel utilisateur
+            return { success: false, message: data.message };
+        } catch (error) {
+            return this._registerFallback(userData);
+        }
+    }
+
+    _registerFallback(userData) {
+        try {
+            const existingUsers = this._getRegisteredUsers();
+            if (existingUsers.some(u => u.email === userData.email)) {
+                return { success: false, message: 'Un compte avec cet email existe déjà' };
+            }
             const newUser = {
                 id: Date.now(),
                 firstName: userData.firstName,
                 lastName: userData.lastName,
                 email: userData.email,
-                password: userData.password,
                 role: userData.role,
                 studentId: userData.studentId || null,
                 registeredAt: new Date().toISOString(),
                 isActive: true
             };
-            
-            // Sauvegarder l'utilisateur localement
             existingUsers.push(newUser);
             localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
-            
-            return {
-                success: true,
-                user: newUser,
-                message: 'Inscription réussie (mode local)'
-            };
+            return { success: true, user: newUser, message: 'Inscription réussie (mode local)' };
         } catch (error) {
-            console.error('Erreur lors de l\'inscription locale:', error);
-            return {
-                success: false,
-                message: 'Erreur lors de l\'inscription'
-            };
+            return { success: false, message: 'Erreur lors de l\'inscription' };
         }
     }
 
-    // Obtenir les utilisateurs enregistrés
-    getRegisteredUsers() {
+    _getRegisteredUsers() {
         try {
-            const users = localStorage.getItem('registeredUsers');
-            return users ? JSON.parse(users) : [];
+            return JSON.parse(localStorage.getItem('registeredUsers') || '[]');
         } catch (error) {
-            console.error('Erreur lors du chargement des utilisateurs:', error);
             return [];
         }
     }
 
-    // Connexion - Détection automatique du rôle
+    // --- Connexion ---
     async login(email, password) {
         try {
-            // Appel API au backend sur le port 5001
-            const response = await fetch('http://localhost:5001/api/auth/login', {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/auth/login`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email: email,
-                    password: password
-                    // Plus besoin d'envoyer le rôle !
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
             });
-            
             const data = await response.json();
-            
+
             if (data.success) {
-                // Stocker le token JWT
                 localStorage.setItem('token', data.access_token);
-                
-                // Stocker les informations utilisateur
                 const user = data.user;
                 this.saveUserToStorage(user);
-                
-                // Stocker le rôle (détecté automatiquement par le backend)
-                localStorage.setItem('userRole', user.role.name);
-                
-                console.log('✅ Connexion réussie en tant que:', user.role.name);
-                
-                return {
-                    success: true,
-                    user: user,
-                    message: data.message
-                };
-            } else {
-                return {
-                    success: false,
-                    message: data.message
-                };
+                const role = this._getRole(user);
+                localStorage.setItem('userRole', role);
+
+                return { success: true, user, message: data.message };
             }
+            return { success: false, message: data.message };
         } catch (error) {
-            console.error('❌ Erreur de connexion:', error);
-            
-            // Fallback: Utiliser la détection locale si le backend n'est pas disponible
-            return this.loginFallback(email, password);
+            return this._loginFallback(email, password);
         }
     }
-    
-    // Fallback local si le backend n'est pas disponible
-    loginFallback(email, password) {
-        // Vérifier les utilisateurs enregistrés localement
-        const registeredUsers = this.getRegisteredUsers();
-        const user = registeredUsers.find(u => u.email === email && u.password === password);
-        
+
+    _loginFallback(email, password) {
+        // Utilisateurs enregistrés localement
+        const registeredUsers = this._getRegisteredUsers();
+        const user = registeredUsers.find(u => u.email === email);
         if (user) {
             const loginUser = {
                 id: user.id,
                 email: user.email,
-                name: `${user.firstName} ${user.lastName}`,
+                full_name: `${user.firstName} ${user.lastName}`,
+                first_name: user.firstName,
+                last_name: user.lastName,
                 role: user.role,
                 loginTime: new Date().toISOString()
             };
-            
             this.saveUserToStorage(loginUser);
             localStorage.setItem('userRole', user.role);
-            
-            return {
-                success: true,
-                user: loginUser,
-                message: 'Connexion réussie (mode local)'
-            };
+            return { success: true, user: loginUser, message: 'Connexion réussie (mode local)' };
         }
-        
-        // Vérifier les comptes de démonstration
-        const demoUser = this.validateCredentialsAutoDetect(email, password);
-        
-        if (demoUser) {
+
+        // Comptes de démo
+        const credentials = {
+            'admin@univ.fr': { password: 'password123', role: 'admin' },
+            'prof@univ.fr': { password: 'password123', role: 'professor' },
+            'etudiant@univ.fr': { password: 'password123', role: 'student' }
+        };
+        const cred = credentials[email];
+        if (cred && cred.password === password) {
             const user = {
                 email: email,
-                role: demoUser.role,
-                name: this.getUserNameByRole(demoUser.role),
+                full_name: this._getUserNameByRole(cred.role),
+                role: cred.role,
                 loginTime: new Date().toISOString()
             };
-            
             this.saveUserToStorage(user);
-            localStorage.setItem('userRole', demoUser.role);
-            
-            return { 
-                success: true, 
-                user: user,
-                message: 'Connexion réussie (mode démo)'
-            };
+            localStorage.setItem('userRole', cred.role);
+            return { success: true, user, message: 'Connexion réussie (mode démo)' };
         }
-        
-        return { 
-            success: false, 
-            message: 'Identifiants invalides' 
-        };
+
+        return { success: false, message: 'Identifiants invalides' };
     }
 
-    // Validation des identifiants avec détection automatique du rôle
-    validateCredentialsAutoDetect(email, password) {
-        const credentials = {
-            'admin@univ.fr': { password: 'admin123', role: 'admin' },
-            'prof@univ.fr': { password: 'prof123', role: 'professor' },
-            'etudiant@univ.fr': { password: 'etudiant123', role: 'student' }
-        };
-
-        const userCreds = credentials[email];
-        // Retourne l'objet utilisateur avec le rôle si les credentials sont valides
-        if (userCreds && userCreds.password === password) {
-            return { role: userCreds.role };
-        }
-        return null;
-    }
-    
-    // Ancienne méthode gardée pour compatibilité
-    validateCredentials(email, password, role) {
-        const userCreds = this.validateCredentialsAutoDetect(email, password);
-        return userCreds && userCreds.role === role;
-    }
-
-    // Obtenir le nom d'utilisateur par rôle
-    getUserNameByRole(role) {
-        const names = {
-            'admin': 'Administrateur',
-            'professor': 'Professeur',
-            'student': 'Étudiant'
-        };
+    _getUserNameByRole(role) {
+        const names = { admin: 'Administrateur', professor: 'Professeur', student: 'Étudiant' };
         return names[role] || 'Utilisateur';
     }
 
-    // Déconnexion
+    // --- Déconnexion ---
     logout() {
-        localStorage.removeItem('currentUser');
-        this.currentUser = null;
-        console.log(' Utilisateur déconnecté');
+        this._clearStorage();
         window.location.href = 'login.html';
     }
 
-    // Vérifier si l'utilisateur est connecté
+    // --- État ---
     isLoggedIn() {
         return this.currentUser !== null;
     }
 
-    // Obtenir l'utilisateur actuel
     getCurrentUser() {
         return this.currentUser;
     }
 
-    // Vérifier les permissions d'accès à une page
-    canAccessPage(pageName) {
-        if (!this.isLoggedIn()) {
-            return false;
-        }
-
-        const permissions = {
-            'admin': ['dashboard', 'gestion', 'suggestion-cours', 'emploi-temps'],
-            'professor': ['gestion', 'suggestion-cours'],
-            'student': ['emploi-temps']
-        };
-
-        const userRole = this.currentUser.role;
-        return permissions[userRole] && permissions[userRole].includes(pageName);
+    getUserRole() {
+        return this._getRole(this.currentUser);
     }
 
-    // Obtenir la page par défaut pour un rôle
+    getUserName() {
+        return this._getFullName(this.currentUser);
+    }
+
+    // --- Permissions ---
+    canAccessPage(pageName) {
+        if (!this.isLoggedIn()) return false;
+        const role = this.getUserRole();
+        const permissions = {
+            admin: ['dashboard', 'gestion', 'suggestion-cours', 'emploi-temps'],
+            professor: ['gestion', 'suggestion-cours'],
+            student: ['emploi-temps']
+        };
+        return permissions[role] && permissions[role].includes(pageName);
+    }
+
     getDefaultPage(role) {
         const defaultPages = {
-            'admin': 'dashboard.html',
-            'professor': 'gestion.html',
-            'student': 'emploi-temps.html'
+            admin: 'dashboard.html',
+            professor: 'gestion.html',
+            student: 'emploi-temps.html'
         };
         return defaultPages[role] || 'login.html';
     }
 
-    // Rediriger vers la page appropriée
     redirectToDefaultPage() {
         if (!this.isLoggedIn()) {
             window.location.href = 'login.html';
             return;
         }
-
-        const defaultPage = this.getDefaultPage(this.currentUser.role);
-        window.location.href = defaultPage;
+        const role = this.getUserRole();
+        window.location.href = this.getDefaultPage(role);
     }
 
-    // Protection des pages
+    // --- Protection des pages ---
     setupPageProtection() {
-        // Attendre que le DOM soit chargé
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
-                // Délai pour éviter les conflits avec les événements de saisie
-                setTimeout(() => this.protectCurrentPage(), 100);
+                setTimeout(() => this._protectCurrentPage(), 100);
             });
         } else {
-            // Délai pour éviter les conflits avec les événements de saisie
-            setTimeout(() => this.protectCurrentPage(), 100);
+            setTimeout(() => this._protectCurrentPage(), 100);
         }
     }
 
-    // Vérifier et rediriger si nécessaire
-    checkAndRedirect() {
+    _protectCurrentPage() {
         const currentPage = this.getCurrentPageName();
-        
-        // Ne pas vérifier sur la page de login
         if (currentPage === 'login') {
+            if (this.isLoggedIn()) this.redirectToDefaultPage();
             return;
         }
-        
-        // Vérifier si l'utilisateur est connecté
         if (!this.isLoggedIn()) {
-            console.log(' Utilisateur non connecté, redirection vers login');
             window.location.href = 'login.html';
             return;
         }
-        
-        // Vérifier les permissions d'accès
         if (!this.canAccessPage(currentPage)) {
-            console.log(` Accès refusé à la page: ${currentPage}`);
+            alert('Accès refusé.\n\nRedirection vers votre page d\'accueil.');
             this.redirectToDefaultPage();
             return;
         }
-        
-        // Mettre à jour l'interface utilisateur
-        this.updateUIForUser();
+        this._updateUIForUser();
     }
 
-    // Protéger la page actuelle
-    protectCurrentPage() {
-        const currentPage = this.getCurrentPageName();
-        
-        if (currentPage === 'login') {
-            // Si on est sur la page de login et qu'on est déjà connecté, rediriger
-            if (this.isLoggedIn()) {
-                this.redirectToDefaultPage();
-            }
-            return;
-        }
-
-        // Vérifier l'accès à la page
-        if (!this.canAccessPage(currentPage)) {
-            console.log(` Accès refusé à la page: ${currentPage}`);
-            this.redirectToDefaultPage();
-            return;
-        }
-
-        // Mettre à jour l'interface utilisateur
-        this.updateUIForUser();
-    }
-
-    // Obtenir le nom de la page actuelle
     getCurrentPageName() {
         const path = window.location.pathname;
         const page = path.split('/').pop().replace('.html', '');
-        
-        // Mapping des noms de fichiers vers les noms de pages
         const pageMapping = {
-            'dashboard': 'dashboard',
-            'gestion': 'gestion',
+            dashboard: 'dashboard',
+            gestion: 'gestion',
             'suggestion-cours': 'suggestion-cours',
             'emploi-temps': 'emploi-temps',
-            'login': 'login'
+            login: 'login'
         };
-        
         return pageMapping[page] || page;
     }
 
-    // Mettre à jour l'interface utilisateur selon l'utilisateur
-    updateUIForUser() {
+    _updateUIForUser() {
         if (!this.isLoggedIn()) return;
+        const role = this.getUserRole();
+        const name = this.getUserName();
 
-        const user = this.getCurrentUser();
-        
-        // Mettre à jour le nom d'utilisateur dans la navigation
-        const userInfoElements = document.querySelectorAll('.user-info');
-        userInfoElements.forEach(element => {
-            element.textContent = user.name;
+        document.querySelectorAll('.user-info').forEach(el => {
+            el.textContent = name;
         });
 
-        // Réinitialiser la navigation avant de la mettre à jour
-        this.resetNavigation();
-        
-        // Mettre à jour la navigation selon le rôle
-        this.updateNavigationForRole(user.role);
-    }
-
-    // Réinitialiser la navigation
-    resetNavigation() {
         const navMenus = document.querySelectorAll('.nav-menu');
         navMenus.forEach(navMenu => {
-            navMenu.dataset.updated = 'false';
-        });
-    }
-
-    // Mettre à jour la navigation selon le rôle
-    updateNavigationForRole(role) {
-        const navMenus = document.querySelectorAll('.nav-menu');
-        
-        navMenus.forEach(navMenu => {
-            // Vérifier si la navigation a déjà été mise à jour
-            if (navMenu.dataset.updated === 'true') {
-                return;
-            }
-            
-            // Supprimer tous les liens existants
+            if (navMenu.dataset.updated === 'true') return;
             navMenu.innerHTML = '';
-            
-            // Ajouter les liens selon le rôle
-            const links = this.getNavigationLinksForRole(role);
-            links.forEach(link => {
+            this._getNavigationLinksForRole(role).forEach(link => {
                 const a = document.createElement('a');
                 a.href = link.href;
                 a.className = `nav-link ${link.active ? 'active' : ''}`;
                 a.textContent = link.text;
                 navMenu.appendChild(a);
             });
-            
-            // Marquer comme mis à jour
             navMenu.dataset.updated = 'true';
         });
     }
 
-    // Obtenir les liens de navigation selon le rôle
-    getNavigationLinksForRole(role) {
+    _getNavigationLinksForRole(role) {
         const currentPage = this.getCurrentPageName();
-        
         const roleLinks = {
-            'admin': [
+            admin: [
                 { href: 'dashboard.html', text: 'Dashboard', active: currentPage === 'dashboard' },
                 { href: 'gestion.html', text: 'Gestion', active: currentPage === 'gestion' },
                 { href: 'suggestion-cours.html', text: 'Suggestions', active: currentPage === 'suggestion-cours' },
                 { href: 'emploi-temps.html', text: 'Emploi du temps', active: currentPage === 'emploi-temps' }
             ],
-            'professor': [
+            professor: [
                 { href: 'gestion.html', text: 'Gestion', active: currentPage === 'gestion' },
                 { href: 'suggestion-cours.html', text: 'Suggestion de cours', active: currentPage === 'suggestion-cours' }
             ],
-            'student': [
+            student: [
                 { href: 'emploi-temps.html', text: 'Mon emploi du temps', active: currentPage === 'emploi-temps' }
             ]
         };
-        
         return roleLinks[role] || [];
     }
 
-    // Vérifier et rediriger si nécessaire
-    checkAndRedirect() {
-        const currentPage = this.getCurrentPageName();
-        
-        // Ne pas vérifier sur la page de login
-        if (currentPage === 'login') {
-            return;
-        }
-        
-        if (!this.isLoggedIn()) {
-            window.location.href = 'login.html';
-            return;
-        }
-
-        if (!this.canAccessPage(currentPage)) {
-            this.showAccessDeniedMessage();
-            this.redirectToDefaultPage();
-        }
-    }
-
-    // Afficher un message d'accès refusé
-    showAccessDeniedMessage() {
-        const user = this.getCurrentUser();
-        const currentPage = this.getCurrentPageName();
-        
-        const pageNames = {
-            'dashboard': 'Dashboard',
-            'gestion': 'Gestion',
-            'suggestion-cours': 'Suggestion de cours',
-            'emploi-temps': 'Emploi du temps'
-        };
-        
-        const pageName = pageNames[currentPage] || currentPage;
-        
-        alert(` Accès refusé\n\nEn tant que ${user.name}, vous n'avez pas l'autorisation d'accéder à la page "${pageName}".\n\nVous allez être redirigé vers votre page d'accueil.`);
-    }
-
-    // Intercepter les clics sur les liens de navigation
+    // --- Interception navigation ---
     interceptNavigation() {
         document.addEventListener('click', (e) => {
-            const currentPage = this.getCurrentPageName();
-            
-            // Ne pas intercepter sur la page de login
-            if (currentPage === 'login') {
-                return;
-            }
-            
+            if (this.getCurrentPageName() === 'login') return;
             const link = e.target.closest('a');
             if (!link || !link.href) return;
-            
-            // Vérifier si c'est un lien interne
-            if (link.href.includes(window.location.origin) || link.href.startsWith('./') || link.href.startsWith('../')) {
-                const href = link.getAttribute('href');
-                const pageName = this.getPageNameFromHref(href);
-                
-                if (pageName && !this.canAccessPage(pageName)) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    this.showAccessDeniedMessage();
-                    return false;
-                }
+            const pageMapping = {
+                'dashboard.html': 'dashboard',
+                'gestion.html': 'gestion',
+                'suggestion-cours.html': 'suggestion-cours',
+                'emploi-temps.html': 'emploi-temps',
+                'login.html': 'login'
+            };
+            const fileName = link.getAttribute('href').split('/').pop();
+            const pageName = pageMapping[fileName];
+            if (pageName && !this.canAccessPage(pageName)) {
+                e.preventDefault();
+                e.stopPropagation();
+                alert('Accès refusé.');
+                return false;
             }
         });
-    }
-
-    // Obtenir le nom de page depuis un href
-    getPageNameFromHref(href) {
-        const pageMapping = {
-            'dashboard.html': 'dashboard',
-            'gestion.html': 'gestion',
-            'suggestion-cours.html': 'suggestion-cours',
-            'emploi-temps.html': 'emploi-temps',
-            'login.html': 'login'
-        };
-        
-        const fileName = href.split('/').pop();
-        return pageMapping[fileName];
     }
 }
 
@@ -569,48 +380,7 @@ function logout() {
     authManager.logout();
 }
 
-// Gérer les changements de page
-window.addEventListener('beforeunload', () => {
-    // Réinitialiser la navigation avant de quitter la page
-    authManager.resetNavigation();
-});
-
-// Gérer le chargement de la page
+// Intercepter la navigation après le chargement
 window.addEventListener('load', () => {
-    // Vérifier et rediriger si nécessaire après le chargement complet
-    setTimeout(() => {
-        authManager.checkAndRedirect();
-    }, 200);
+    authManager.interceptNavigation();
 });
-
-// Vérification périodique de l'accès (seulement si pas sur la page de login)
-setInterval(() => {
-    const currentPage = authManager.getCurrentPageName();
-    if (currentPage !== 'login') {
-        authManager.checkAndRedirect();
-    }
-}, 5000); // Vérifier toutes les 5 secondes
-
-// Fonction de debug pour afficher les permissions
-function showUserPermissions() {
-    if (!authManager.isLoggedIn()) {
-        console.log(' Aucun utilisateur connecté');
-        return;
-    }
-    
-    const user = authManager.getCurrentUser();
-    console.log(' Utilisateur connecté:', user);
-    
-    const permissions = {
-        'admin': ['dashboard', 'gestion', 'suggestion-cours', 'emploi-temps'],
-        'professor': ['gestion', 'suggestion-cours'],
-        'student': ['emploi-temps']
-    };
-    
-    console.log(' Permissions pour', user.role + ':', permissions[user.role]);
-    console.log(' Page actuelle:', authManager.getCurrentPageName());
-    console.log(' Accès autorisé:', authManager.canAccessPage(authManager.getCurrentPageName()));
-}
-
-// Exposer la fonction de debug globalement
-window.showUserPermissions = showUserPermissions;

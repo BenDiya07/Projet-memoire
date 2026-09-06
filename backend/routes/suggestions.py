@@ -331,7 +331,7 @@ def reject_suggestion(suggestion_id):
                 'message': 'Cette suggestion a déjà été traitée'
             }), 400
         
-        data = request.get_json()
+        data = request.get_json() or {}
         reason = data.get('reason', 'Non spécifié')
         
         # Mettre à jour la suggestion

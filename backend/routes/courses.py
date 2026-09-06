@@ -481,3 +481,112 @@ def get_my_courses():
             'message': f'Erreur: {str(e)}'
         }), 500
 
+# ============================================
+# LISTE DES SALLES
+# ============================================
+@courses_bp.route('/rooms', methods=['GET'])
+@jwt_required()
+def get_rooms():
+    """Obtenir la liste des salles disponibles"""
+    try:
+        rooms = Room.query.all()
+        return jsonify({
+            'success': True,
+            'rooms': [room.to_dict() for room in rooms]
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Erreur: {str(e)}'
+        }), 500
+
+# ============================================
+# CRÉER UN HORAIRE (Admin seulement)
+# ============================================
+@courses_bp.route('/schedules', methods=['POST'])
+@jwt_required()
+def create_schedule():
+    """Ajouter un créneau horaire à un cours"""
+    try:
+        claims = get_jwt()
+        if claims.get('role') != 'admin':
+            return jsonify({'success': False, 'message': 'Accès refusé'}), 403
+            
+        data = request.get_json()
+        
+        # Conversion des chaînes en objets time/date
+        start_time = datetime.strptime(data['start_time'], '%H:%M').time()
+        end_time = datetime.strptime(data['end_time'], '%H:%M').time()
+        
+        new_schedule = CourseSchedule(
+            course_id=data['course_id'],
+            room_id=data['room_id'],
+            day_of_week=data['day_of_week'],
+            start_time=start_time,
+            end_time=end_time,
+            duration_hours=data.get('duration_hours'),
+            frequency=data.get('frequency', 'weekly')
+        )
+        
+        db.session.add(new_schedule)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Horaire ajouté avec succès',
+            'schedule': new_schedule.to_dict()
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Erreur: {str(e)}'
+        }), 500
+
+# ============================================
+# MODIFIER UN CRÉNEAU HORAIRE (Admin seulement)
+# ============================================
+@courses_bp.route('/schedules/<int:schedule_id>', methods=['PUT'])
+@jwt_required()
+def update_schedule(schedule_id):
+    """Modifier un créneau horaire d'un cours"""
+    try:
+        claims = get_jwt()
+        if claims.get('role') != 'admin':
+            return jsonify({'success': False, 'message': 'Accès refusé'}), 403
+
+        schedule = CourseSchedule.query.get(schedule_id)
+        if not schedule:
+            return jsonify({'success': False, 'message': 'Horaire non trouvé'}), 404
+
+        data = request.get_json()
+
+        if 'course_id' in data:
+            schedule.course_id = data['course_id']
+        if 'room_id' in data:
+            schedule.room_id = data['room_id']
+        if 'day_of_week' in data:
+            schedule.day_of_week = data['day_of_week']
+        if 'start_time' in data:
+            schedule.start_time = datetime.strptime(data['start_time'], '%H:%M').time()
+        if 'end_time' in data:
+            schedule.end_time = datetime.strptime(data['end_time'], '%H:%M').time()
+        if 'duration_hours' in data:
+            schedule.duration_hours = data['duration_hours']
+        if 'frequency' in data:
+            schedule.frequency = data.get('frequency', 'weekly')
+
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': 'Horaire modifié avec succès',
+            'schedule': schedule.to_dict(include_room=True)
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Erreur: {str(e)}'
+        }), 500

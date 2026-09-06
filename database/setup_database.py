@@ -10,6 +10,9 @@ import os
 import sys
 from getpass import getpass
 
+# Forcer l'encodage client pour éviter les erreurs Unicode sur Windows avec des messages en FR
+os.environ['PGCLIENTENCODING'] = 'utf-8'
+
 def create_database(host, port, admin_user, admin_password, db_name):
     """Créer la base de données si elle n'existe pas"""
     try:
@@ -19,7 +22,8 @@ def create_database(host, port, admin_user, admin_password, db_name):
             port=port,
             user=admin_user,
             password=admin_password,
-            database='postgres'
+            database='postgres',
+            client_encoding='utf8'
         )
         conn.autocommit = True
         cursor = conn.cursor()
@@ -47,6 +51,11 @@ def create_database(host, port, admin_user, admin_password, db_name):
     except psycopg2.Error as e:
         print(f"❌ Erreur lors de la création de la base de données: {e}")
         return False
+    except UnicodeDecodeError:
+        print("❌ Erreur d'encodage lors de la connexion.")
+        print("💡 Cela arrive souvent quand le mot de passe est incorrect et que PostgreSQL renvoie un message d'erreur avec des accents.")
+        print("👉 Veuillez vérifier votre mot de passe et vos identifiants PostgreSQL.")
+        return False
 
 def execute_sql_file(conn, filepath):
     """Exécuter un fichier SQL"""
@@ -71,10 +80,11 @@ def setup_database(host, port, user, password, db_name, init_data=True):
         print(f"\n🔌 Connexion à PostgreSQL sur {host}:{port}...")
         conn = psycopg2.connect(
             host=host,
-            port=5432,
+            port=port,
             user=user,
             password=password,
-            database=db_name
+            database=db_name,
+            client_encoding='utf8'
         )
         
         print("✅ Connexion établie!")
@@ -128,6 +138,10 @@ def setup_database(host, port, user, password, db_name, init_data=True):
     except psycopg2.Error as e:
         print(f"❌ Erreur PostgreSQL: {e}")
         return False
+    except UnicodeDecodeError:
+        print("❌ Erreur d'encodage lors de la connexion.")
+        print("💡 Cela arrive souvent quand le mot de passe est incorrect et que PostgreSQL renvoie un message d'erreur avec des accents.")
+        return False
     except Exception as e:
         print(f"❌ Erreur: {e}")
         return False
@@ -143,7 +157,7 @@ def main():
         'host': 'localhost',
         'port': '5432',
         'user': 'postgres',
-        'db_name': 'gestion_cours_db'
+        'db_name': 'university'
     }
     
     print("\n📋 Configuration de la connexion PostgreSQL")

@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suggestion de cours - Professeur</title>
     <script>
         // Appliquer le thème immédiatement pour éviter le flash
-        (function() {
+        (function () {
             const savedTheme = localStorage.getItem('theme') || 'light';
             const savedRole = localStorage.getItem('userRole') || 'student';
             document.documentElement.classList.add(`theme-${savedTheme}`);
@@ -17,6 +18,7 @@
     </script>
     <link rel="stylesheet" href="dashboard-styles.css">
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar">
@@ -50,7 +52,22 @@
 
                 <form id="suggestionForm">
 
-                    <!-- Planning proposé -->
+                    <!-- Informations du cours -->
+                    <div class="form-section">
+                        <h4> Informations du cours</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="course_name">Nom du cours :</label>
+                                <input type="text" id="course_name" name="course_name" required placeholder="Ex: Mathematiques Avancees">
+                            </div>
+                            <div class="form-group">
+                                <label for="course_code">Code du cours :</label>
+                                <input type="text" id="course_code" name="course_code" placeholder="Ex: MATH-301">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Planning propose -->
                     <div class="form-section">
                         <h4> Planning proposé</h4>
                         <div class="form-row">
@@ -110,7 +127,8 @@
                             </div>
                             <div class="form-group">
                                 <label for="capacity">Capacité souhaitée :</label>
-                                <input type="number" id="capacity" name="capacity" min="10" max="200" placeholder="Ex: 30">
+                                <input type="number" id="capacity" name="capacity" min="10" max="200"
+                                    placeholder="Ex: 30">
                             </div>
                         </div>
                         <div class="form-group">
@@ -150,11 +168,13 @@
                         <h4> Justification</h4>
                         <div class="form-group">
                             <label for="justification">Pourquoi ce cours est-il nécessaire ?</label>
-                            <textarea id="justification" name="justification" rows="4" required placeholder="Expliquez l'importance de ce cours, son impact sur les étudiants, et pourquoi il devrait être ajouté au planning..."></textarea>
+                            <textarea id="justification" name="justification" rows="4" required
+                                placeholder="Expliquez l'importance de ce cours, son impact sur les étudiants, et pourquoi il devrait être ajouté au planning..."></textarea>
                         </div>
                         <div class="form-group">
                             <label for="targetAudience">Public cible :</label>
-                            <input type="text" id="targetAudience" name="targetAudience" placeholder="Ex: Étudiants de 2ème année en Informatique">
+                            <input type="text" id="targetAudience" name="targetAudience"
+                                placeholder="Ex: Étudiants de 2ème année en Informatique">
                         </div>
                     </div>
 
@@ -179,49 +199,19 @@
         <!-- Historique des suggestions -->
         <div class="suggestions-history">
             <div class="history-header">
-                <h3> Mes suggestions précédentes</h3>
+                <h3> Mes suggestions precedentes</h3>
                 <button class="btn-small" onclick="refreshHistory()"> Actualiser</button>
             </div>
             <div class="history-content">
-                <div class="suggestion-item">
-                    <div class="suggestion-info">
-                        <h4>Mathématiques Avancées</h4>
-                        <p><strong>Code:</strong> MATH-301 | <strong>Statut:</strong> <span class="status pending">En attente</span></p>
-                        <p><strong>Date:</strong> 15 Janvier 2024</p>
-                    </div>
-                    <div class="suggestion-actions">
-                        <button class="btn-icon-small" onclick="viewSuggestion(1)" title="Voir"></button>
-                        <button class="btn-icon-small" onclick="editSuggestion(1)" title="Modifier"></button>
-                    </div>
-                </div>
-                <div class="suggestion-item">
-                    <div class="suggestion-info">
-                        <h4>Physique Quantique</h4>
-                        <p><strong>Code:</strong> PHYS-401 | <strong>Statut:</strong> <span class="status approved">Approuvé</span></p>
-                        <p><strong>Date:</strong> 10 Janvier 2024</p>
-                    </div>
-                    <div class="suggestion-actions">
-                        <button class="btn-icon-small" onclick="viewSuggestion(2)" title="Voir"></button>
-                        <button class="btn-icon-small" onclick="editSuggestion(2)" title="Modifier"></button>
-                    </div>
-                </div>
-                <div class="suggestion-item">
-                    <div class="suggestion-info">
-                        <h4>Algorithmes Avancés</h4>
-                        <p><strong>Code:</strong> INFO-302 | <strong>Statut:</strong> <span class="status rejected">Rejeté</span></p>
-                        <p><strong>Date:</strong> 5 Janvier 2024</p>
-                    </div>
-                    <div class="suggestion-actions">
-                        <button class="btn-icon-small" onclick="viewSuggestion(3)" title="Voir"></button>
-                        <button class="btn-icon-small" onclick="editSuggestion(3)" title="Modifier"></button>
-                    </div>
-                </div>
+                <!-- Charge dynamiquement par suggestion-cours-script.js -->
             </div>
         </div>
     </main>
 
+    <script src="config.js"></script>
     <script src="auth.js"></script>
     <script src="theme.js"></script>
     <script src="suggestion-cours-script.js"></script>
 </body>
+
 </html>
