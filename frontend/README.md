@@ -22,6 +22,14 @@ Frontend indépendant de l’application universitaire existante. Il utilise Rea
 
 En développement, Vite transmet `/api` à Flask sur le port 5001. Pour viser une autre API lors de la compilation, définir `VITE_API_BASE_URL`, par exemple `https://api.example.org/api`.
 
+## Déploiement Vercel
+
+Créer le projet Vercel depuis le dépôt GitHub en choisissant `frontend/` comme répertoire racine. Vercel détecte Vite ; la commande de build est `npm run build` et le répertoire de sortie `dist`.
+
+Définir `VITE_API_BASE_URL` dans les variables d’environnement Vercel avec l’URL HTTPS publique de l’API, terminée par `/api` (par exemple `https://api.example.org/api`), puis redéployer. `vercel.json` configure le fallback des routes React Router.
+
+Le backend Flask et sa base SQLite locale ne sont pas déployés sur Vercel. Pour une application complète, héberger l’API séparément avec une base PostgreSQL persistante, puis autoriser le domaine Vercel dans `CORS_ORIGINS` du backend. Ne pas utiliser SQLite local comme base de production serverless.
+
 ## Commandes
 
 - `npm run dev` : serveur local Vite.
