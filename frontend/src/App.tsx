@@ -199,7 +199,7 @@ function LoginPage({
                   </button>
                 ))}
               </div>
-              <p className="demo-note">Ces comptes nécessitent une base de données initialisée.</p>
+              <p className="demo-note">La connexion nécessite que le backend soit déployé et relié à sa base de données.</p>
             </div>
           )}
         </section>

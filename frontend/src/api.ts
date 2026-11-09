@@ -59,7 +59,9 @@ export type Professor = Pick<User, 'id' | 'full_name' | 'first_name' | 'last_nam
 type ApiEnvelope<T> = T & { success?: boolean; message?: string }
 type LoginResponse = { access_token: string; user: User }
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : '')
+).replace(/\/$/, '')
 const TOKEN_KEY = 'campusflow.accessToken'
 const USER_KEY = 'campusflow.user'
 
@@ -74,6 +76,13 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  if (!API_BASE_URL) {
+    throw new ApiError(
+      'Le backend n’est pas encore déployé. Cette version du site présente uniquement l’interface.',
+      503,
+    )
+  }
+
   const token = localStorage.getItem(TOKEN_KEY)
   let response: Response
   try {
@@ -89,7 +98,13 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new ApiError(`Impossible de joindre l’API (${API_BASE_URL}).`, 0)
   }
 
-  const body = await response.json().catch(() => ({})) as ApiEnvelope<T>
+  let body: ApiEnvelope<T>
+  try {
+    body = await response.json() as ApiEnvelope<T>
+  } catch {
+    throw new ApiError('La réponse de l’API n’est pas un JSON valide.', response.status || 502)
+  }
+
   if (!response.ok || body.success === false) {
     if (response.status === 401) {
       clearSession()
