@@ -8,10 +8,11 @@ let allSchedules = [];
 document.addEventListener('DOMContentLoaded', async function () {
     if (typeof authManager !== 'undefined') {
         const userRole = localStorage.getItem('userRole');
-        document.documentElement.className = `role-${userRole}`;
+        if (userRole) document.documentElement.classList.add(`role-${userRole}`);
         await loadInitialData();
         setupEventListeners();
         setupAnimations();
+        updateCurrentPeriod();
     }
 });
 
@@ -175,9 +176,28 @@ function renderDailyView(schedules) {
 
     const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
     const currentDayName = dayNames[currentDate.getDay()];
+    const dateHeading = document.getElementById('dailyDate');
+    if (dateHeading) {
+        dateHeading.textContent = currentDate.toLocaleDateString('fr-FR', {
+            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+        });
+    }
     const daySchedules = schedules
         .filter(s => (s.day_of_week || '').toLowerCase() === currentDayName.toLowerCase())
         .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+    const statItems = document.querySelectorAll('.daily-stats .stat');
+    const roomCount = new Set(daySchedules.map(s => s.room?.room_number).filter(Boolean)).size;
+    const totalMinutes = daySchedules.reduce((total, schedule) => {
+        const toMinutes = value => {
+            const [hours, minutes] = (value || '').split(':').map(Number);
+            return Number.isFinite(hours) && Number.isFinite(minutes) ? hours * 60 + minutes : 0;
+        };
+        return total + Math.max(0, toMinutes(schedule.end_time) - toMinutes(schedule.start_time));
+    }, 0);
+    const duration = `${Math.floor(totalMinutes / 60)}h${totalMinutes % 60 ? String(totalMinutes % 60).padStart(2, '0') : ''}`;
+    if (statItems[0]) statItems[0].textContent = `${daySchedules.length} cours`;
+    if (statItems[1]) statItems[1].textContent = `${duration} de cours`;
+    if (statItems[2]) statItems[2].textContent = `${roomCount} salle${roomCount > 1 ? 's' : ''} utilisée${roomCount > 1 ? 's' : ''}`;
 
     if (daySchedules.length === 0) {
         container.innerHTML = '<div class="no-data">Aucun cours prevu pour ce jour.</div>';
@@ -281,11 +301,10 @@ function updateCurrentPeriod() {
     const el = document.getElementById('currentPeriod');
     if (!el) return;
     const options = { day: 'numeric', month: 'long', year: 'numeric' };
-    if (currentView === 'weekly') {
+    if (currentView !== 'daily') {
         const start = new Date(currentDate);
-        start.setDate(currentDate.getDate() - currentDate.getDay() + 1);
-        const end = new Date(start);
-        end.setDate(start.getDate() + 4);
+        const weekday = currentDate.getDay() || 7;
+        start.setDate(currentDate.getDate() - weekday + 1);
         el.textContent = `Semaine du ${start.toLocaleDateString('fr-FR', options)}`;
     } else {
         el.textContent = currentDate.toLocaleDateString('fr-FR', { ...options, weekday: 'long' });
@@ -324,5 +343,41 @@ function setupAnimations() {
 }
 
 function printSchedule() { window.print(); }
-function exportSchedule() { alert('Export PDF lance...'); }
-function shareSchedule() { console.log('Partage...'); }
+function exportSchedule() { window.print(); }
+
+async function shareSchedule() {
+    const title = document.title;
+    const text = `Mon emploi du temps — ${document.getElementById('currentPeriod')?.textContent || ''}`;
+    const shareData = { title, text, url: window.location.href };
+
+    try {
+        if (navigator.share) {
+            await navigator.share(shareData);
+            return;
+        }
+        if (!navigator.clipboard) {
+            throw new Error('Le partage et la copie ne sont pas disponibles dans ce navigateur.');
+        }
+        await navigator.clipboard.writeText(`${text}\n${shareData.url}`);
+        showScheduleNotice('Lien de partage copié.');
+    } catch (error) {
+        if (error.name === 'AbortError') return;
+        console.error('Erreur de partage:', error);
+        showScheduleNotice(error.message || 'Impossible de partager cet emploi du temps.', true);
+    }
+}
+
+function showScheduleNotice(message, isError = false) {
+    let notice = document.getElementById('scheduleNotice');
+    if (!notice) {
+        notice = document.createElement('div');
+        notice.id = 'scheduleNotice';
+        notice.className = 'schedule-notice';
+        notice.setAttribute('role', 'status');
+        document.body.appendChild(notice);
+    }
+    notice.textContent = message;
+    notice.classList.toggle('error', isError);
+    notice.classList.add('visible');
+    window.setTimeout(() => notice.classList.remove('visible'), 3500);
+}

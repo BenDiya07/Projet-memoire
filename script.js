@@ -16,18 +16,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Empêcher Enter dans les inputs (sauf submit et textarea)
-    const inputs = document.querySelectorAll('input, select, textarea');
-    inputs.forEach(input => {
-        input.addEventListener('input', (e) => e.stopPropagation());
-        input.addEventListener('change', (e) => e.stopPropagation());
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && e.target.type !== 'submit' && e.target.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        });
-    });
 });
 
 // Formulaire de connexion
@@ -35,35 +23,37 @@ document.addEventListener('DOMContentLoaded', function () {
     const loginForm = document.getElementById('loginForm');
     if (!loginForm) return;
 
+    loginForm.addEventListener('input', () => {
+        const feedback = document.getElementById('loginFeedback');
+        if (feedback) {
+            feedback.textContent = '';
+            feedback.className = 'form-feedback';
+        }
+    });
+
     loginForm.addEventListener('submit', async function (e) {
         e.preventDefault();
-        e.stopPropagation();
 
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
-
-        if (!email || !password) {
-            alert('Veuillez remplir tous les champs');
-            return false;
-        }
+        const feedback = document.getElementById('loginFeedback');
 
         const submitBtn = loginForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
         submitBtn.textContent = 'Connexion en cours...';
         submitBtn.disabled = true;
 
-        const result = await authManager.login(email, password);
-
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-
-        if (result.success) {
-            const userRole = authManager.getUserRole();
-            const userName = authManager.getUserName();
-            alert(`Connexion reussie !\n\nBienvenue ${userName}\nRole: ${userRole}`);
-            window.location.href = authManager.getDefaultPage(userRole);
-        } else {
-            alert(`${result.message}\n\nVerifiez vos identifiants.`);
+        try {
+            const result = await authManager.login(email, password);
+            if (result.success) {
+                window.location.href = authManager.getDefaultPage(authManager.getUserRole());
+            } else if (feedback) {
+                feedback.textContent = result.message;
+                feedback.className = 'form-feedback error';
+            }
+        } finally {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
         }
         return false;
     });
@@ -83,23 +73,22 @@ document.addEventListener('DOMContentLoaded', function () {
         const password = document.getElementById('reg-password').value;
         const confirmPassword = document.getElementById('reg-confirmPassword').value;
         const studentId = document.getElementById('reg-studentId').value;
-        const role = document.querySelector('input[name="reg-role"]:checked').value;
-        const terms = document.getElementById('reg-terms').checked;
+        const confirmedInfo = document.getElementById('reg-confirmInfo').checked;
+        const feedback = document.getElementById('registerFeedback');
 
-        if (!firstName || !lastName || !email || !password || !confirmPassword) {
-            alert('Veuillez remplir tous les champs obligatoires');
-            return;
-        }
         if (password.length < 6) {
-            alert('Le mot de passe doit contenir au moins 6 caracteres');
+            feedback.textContent = 'Le mot de passe doit contenir au moins 6 caractères.';
+            feedback.className = 'form-feedback error';
             return;
         }
         if (password !== confirmPassword) {
-            alert('Les mots de passe ne correspondent pas');
+            feedback.textContent = 'Les mots de passe ne correspondent pas.';
+            feedback.className = 'form-feedback error';
             return;
         }
-        if (!terms) {
-            alert('Vous devez accepter les conditions d\'utilisation');
+        if (!confirmedInfo) {
+            feedback.textContent = 'Veuillez confirmer l’exactitude des informations.';
+            feedback.className = 'form-feedback error';
             return;
         }
 
@@ -108,67 +97,36 @@ document.addEventListener('DOMContentLoaded', function () {
         submitBtn.textContent = 'Inscription en cours...';
         submitBtn.disabled = true;
 
-        const userData = { firstName, lastName, email, password, role, studentId: studentId || null };
+        const userData = { firstName, lastName, email, password, studentId: studentId || null };
 
         try {
             const result = await authManager.register(userData);
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-
             if (result.success) {
-                alert(`Inscription reussie !\n\nNom: ${firstName} ${lastName}\nEmail: ${email}\nRole: ${role}\n${studentId ? `Numero etudiant: ${studentId}` : ''}\n\nVous pouvez maintenant vous connecter.`);
+                feedback.textContent = 'Inscription réussie. Vous pouvez maintenant vous connecter.';
+                feedback.className = 'form-feedback success';
                 registerForm.reset();
                 document.querySelector('[data-tab="login"]').click();
             } else {
-                alert(`Erreur d'inscription: ${result.message}`);
+                feedback.textContent = result.message;
+                feedback.className = 'form-feedback error';
             }
         } catch (error) {
+            console.error('Erreur d’inscription:', error);
+            feedback.textContent = 'Une erreur est survenue. Veuillez réessayer.';
+            feedback.className = 'form-feedback error';
+        } finally {
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
-            alert(`Erreur d'inscription: ${error.message}`);
         }
     });
 });
 
 // Auto-remplissage pour les comptes de démonstration
 document.addEventListener('click', function (e) {
-    if (e.target.tagName === 'P' && e.target.textContent.includes('@univ.fr')) {
-        const text = e.target.textContent;
-        const email = text.split(' / ')[0].split(': ')[1];
-        const password = text.split(' / ')[1];
-        const isAdmin = text.includes('Admin');
-        const isProf = text.includes('Professeur');
-
-        document.getElementById('email').value = email;
-        document.getElementById('password').value = password;
-
-        if (isAdmin) {
-            const radio = document.getElementById('reg-admin');
-            if (radio) radio.checked = true;
-        } else if (isProf) {
-            const radio = document.getElementById('reg-professor');
-            if (radio) radio.checked = true;
-        } else {
-            const radio = document.getElementById('reg-student');
-            if (radio) radio.checked = true;
-        }
-    }
+    const account = e.target.closest('[data-demo-email]');
+    if (!account) return;
+    document.getElementById('email').value = account.dataset.demoEmail;
+    document.getElementById('password').value = account.dataset.demoPassword;
+    document.getElementById('loginFeedback').textContent = '';
+    document.querySelector('[data-tab="login"]').click();
 });
-
-// Test d'inscription (pour debug)
-async function testRegistration() {
-    const testUser = {
-        firstName: 'Test',
-        lastName: 'User',
-        email: 'test@example.com',
-        password: 'test123',
-        role: 'student',
-        studentId: 'TEST001'
-    };
-    const result = await authManager.register(testUser);
-    if (result.success) {
-        alert('Test reussi !\nUtilisateur cree.');
-    } else {
-        alert('Test echoue: ' + result.message);
-    }
-}

@@ -1,6 +1,6 @@
 """
 Application Flask principale - Gestion des Cours Universitaires
-Backend API pour PostgreSQL
+Backend API pour SQLite en développement et PostgreSQL en production
 """
 
 from flask import Flask, jsonify
@@ -21,9 +21,11 @@ def create_app(config_name=None):
     if config_name is None:
         config_name = os.getenv('FLASK_ENV', 'development')
     
-    config = get_config()
-    app.config.from_object(config)
-    config.init_app(app)
+    app_config = get_config(config_name)
+    app.config.from_object(app_config)
+    app_config.init_app(app)
+    if app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite:'):
+        os.makedirs(app.instance_path, exist_ok=True)
     
     # Initialiser les extensions
     db.init_app(app)
@@ -95,14 +97,16 @@ def create_app(config_name=None):
             # Vérifier la connexion à la base de données
             db.session.execute(text('SELECT 1'))
             db_status = 'connected'
-        except Exception as e:
-            db_status = f'error: {str(e)}'
+        except Exception:
+            app.logger.exception('Vérification de la base de données échouée')
+            db.session.rollback()
+            db_status = 'unavailable'
         
         return jsonify({
-            'status': 'healthy',
+            'status': 'healthy' if db_status == 'connected' else 'degraded',
             'database': db_status,
             'environment': os.getenv('FLASK_ENV', 'development')
-        }), 200
+        }), 200 if db_status == 'connected' else 503
     
     # Gestionnaire d'erreurs global
     @app.errorhandler(404)
@@ -225,4 +229,3 @@ if __name__ == '__main__':
         port=int(os.getenv('PORT', 5001)),
         debug=os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
     )
-

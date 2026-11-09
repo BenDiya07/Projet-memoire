@@ -2,15 +2,16 @@
 Routes d'authentification
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import (
     create_access_token, create_refresh_token,
-    jwt_required, get_jwt_identity, get_jwt
+    jwt_required, get_jwt
 )
 from datetime import datetime
 import bcrypt
 from models import db, User, Role, AuditLog
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError
+from auth_utils import get_current_user_id
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
@@ -21,46 +22,73 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 def register():
     """Inscription d'un nouvel utilisateur"""
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
+        if not isinstance(data, dict):
+            return jsonify({
+                'success': False,
+                'message': 'Données d’inscription invalides'
+            }), 400
         
         # Validation des champs requis
-        required_fields = ['email', 'password', 'firstName', 'lastName', 'role']
-        missing_fields = [field for field in required_fields if field not in data]
+        required_fields = ['email', 'password', 'firstName', 'lastName']
+        missing_fields = [field for field in required_fields if not data.get(field)]
         
         if missing_fields:
             return jsonify({
                 'success': False,
                 'message': f'Champs manquants: {", ".join(missing_fields)}'
             }), 400
+
+        if not all(isinstance(data[field], str) for field in ('email', 'firstName', 'lastName')):
+            return jsonify({
+                'success': False,
+                'message': 'Les informations fournies sont invalides'
+            }), 400
+
+        email = data['email'].strip().lower()
+        first_name = data['firstName'].strip()
+        last_name = data['lastName'].strip()
+        password = data['password']
+        if not email or not first_name or not last_name or not isinstance(password, str) or len(password) < 6:
+            return jsonify({
+                'success': False,
+                'message': 'Les informations fournies sont invalides'
+            }), 400
         
+        # L’inscription publique ne peut créer que des comptes étudiants.
+        if data.get('role') not in (None, 'student'):
+            return jsonify({
+                'success': False,
+                'message': 'Seule la création de comptes étudiants est autorisée'
+            }), 403
+
         # Vérifier si l'email existe déjà
-        existing_user = User.query.filter_by(email=data['email']).first()
+        existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             return jsonify({
                 'success': False,
                 'message': 'Un compte avec cet email existe déjà'
             }), 409
-        
-        # Vérifier si le rôle existe
-        role = Role.query.filter_by(name=data['role']).first()
+
+        role = Role.query.filter_by(name='student').first()
         if not role:
             return jsonify({
                 'success': False,
-                'message': f'Rôle invalide: {data["role"]}'
-            }), 400
+                'message': 'Rôle étudiant introuvable'
+            }), 500
         
         # Hasher le mot de passe
         password_hash = bcrypt.hashpw(
-            data['password'].encode('utf-8'),
+            password.encode('utf-8'),
             bcrypt.gensalt()
         ).decode('utf-8')
         
         # Créer le nouvel utilisateur
         new_user = User(
-            email=data['email'],
+            email=email,
             password_hash=password_hash,
-            first_name=data['firstName'],
-            last_name=data['lastName'],
+            first_name=first_name,
+            last_name=last_name,
             student_id=data.get('studentId'),
             role_id=role.id,
             is_active=True
@@ -88,17 +116,25 @@ def register():
             'user': new_user.to_dict()
         }), 201
         
-    except IntegrityError as e:
+    except IntegrityError:
         db.session.rollback()
         return jsonify({
             'success': False,
             'message': 'Erreur lors de l\'inscription (données en conflit)'
         }), 409
-    except Exception as e:
+    except OperationalError:
         db.session.rollback()
+        current_app.logger.exception('Base de données indisponible pendant l’inscription')
         return jsonify({
             'success': False,
-            'message': f'Erreur lors de l\'inscription: {str(e)}'
+            'message': 'Le service d’authentification est temporairement indisponible'
+        }), 503
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception('Erreur lors de la création du compte')
+        return jsonify({
+            'success': False,
+            'message': 'Une erreur est survenue pendant la création du compte'
         }), 500
 
 # ============================================
@@ -147,14 +183,14 @@ def login():
         
         # Créer les tokens JWT
         access_token = create_access_token(
-            identity=user.id,
+            identity=str(user.id),
             additional_claims={
                 'email': user.email,
                 'role': user.role.name
             }
         )
         
-        refresh_token = create_refresh_token(identity=user.id)
+        refresh_token = create_refresh_token(identity=str(user.id))
         
         # Log d'audit
         audit_log = AuditLog(
@@ -176,11 +212,19 @@ def login():
             'refresh_token': refresh_token
         }), 200
         
-    except Exception as e:
+    except OperationalError:
         db.session.rollback()
+        current_app.logger.exception('Base de données indisponible pendant la connexion')
         return jsonify({
             'success': False,
-            'message': f'Erreur lors de la connexion: {str(e)}'
+            'message': 'Le service d’authentification est temporairement indisponible'
+        }), 503
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception('Erreur lors de la connexion')
+        return jsonify({
+            'success': False,
+            'message': 'Une erreur est survenue pendant la connexion'
         }), 500
 
 # ============================================
@@ -191,7 +235,7 @@ def login():
 def refresh():
     """Rafraîchir le token d'accès"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = get_current_user_id()
         user = User.query.get(current_user_id)
         
         if not user or not user.is_active:
@@ -202,7 +246,7 @@ def refresh():
         
         # Créer un nouveau token d'accès
         access_token = create_access_token(
-            identity=user.id,
+            identity=str(user.id),
             additional_claims={
                 'email': user.email,
                 'role': user.role.name
@@ -228,7 +272,7 @@ def refresh():
 def get_current_user():
     """Obtenir les informations de l'utilisateur connecté"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = get_current_user_id()
         user = User.query.get(current_user_id)
         
         if not user:
@@ -256,7 +300,7 @@ def get_current_user():
 def logout():
     """Déconnexion (invalider le token côté client)"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = get_current_user_id()
         
         # Log d'audit
         audit_log = AuditLog(
@@ -290,7 +334,7 @@ def logout():
 def verify_token():
     """Vérifier si le token est valide"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = get_current_user_id()
         claims = get_jwt()
         
         user = User.query.get(current_user_id)
@@ -384,7 +428,7 @@ def create_professor():
         db.session.commit()
 
         audit_log = AuditLog(
-            user_id=get_jwt_identity(),
+            user_id=get_current_user_id(),
             action='PROFESSOR_CREATE',
             table_name='users',
             record_id=professor.id,

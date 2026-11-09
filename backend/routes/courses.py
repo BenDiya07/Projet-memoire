@@ -3,10 +3,11 @@ Routes pour la gestion des cours
 """
 
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from flask_jwt_extended import jwt_required, get_jwt
 from models import db, Course, CourseSchedule, Room, User, StudentEnrollment, AuditLog
 from sqlalchemy import or_, and_
 from datetime import datetime, time
+from auth_utils import get_current_user_id
 
 courses_bp = Blueprint('courses', __name__, url_prefix='/api/courses')
 
@@ -169,7 +170,7 @@ def create_course():
         db.session.commit()
         
         # Log d'audit
-        current_user_id = get_jwt_identity()
+        current_user_id = get_current_user_id()
         audit_log = AuditLog(
             user_id=current_user_id,
             action='COURSE_CREATE',
@@ -242,7 +243,7 @@ def update_course(course_id):
         db.session.commit()
         
         # Log d'audit
-        current_user_id = get_jwt_identity()
+        current_user_id = get_current_user_id()
         audit_log = AuditLog(
             user_id=current_user_id,
             action='COURSE_UPDATE',
@@ -295,7 +296,7 @@ def delete_course(course_id):
         old_values = course.to_dict()
         
         # Log d'audit avant suppression
-        current_user_id = get_jwt_identity()
+        current_user_id = get_current_user_id()
         audit_log = AuditLog(
             user_id=current_user_id,
             action='COURSE_DELETE',
@@ -330,7 +331,7 @@ def get_schedule():
     """Obtenir l'emploi du temps complet"""
     try:
         claims = get_jwt()
-        user_id = get_jwt_identity()
+        user_id = get_current_user_id()
         user_role = claims.get('role')
         
         # Query de base avec joins
@@ -371,7 +372,7 @@ def get_schedule():
 def enroll_student(course_id):
     """Inscrire un étudiant à un cours"""
     try:
-        user_id = get_jwt_identity()
+        user_id = get_current_user_id()
         claims = get_jwt()
         user_role = claims.get('role')
         
@@ -444,7 +445,7 @@ def enroll_student(course_id):
 def get_my_courses():
     """Obtenir les cours de l'étudiant connecté"""
     try:
-        user_id = get_jwt_identity()
+        user_id = get_current_user_id()
         claims = get_jwt()
         user_role = claims.get('role')
         

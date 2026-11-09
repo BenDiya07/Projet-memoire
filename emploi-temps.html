@@ -11,9 +11,7 @@
             const savedTheme = localStorage.getItem('theme') || 'light';
             const savedRole = localStorage.getItem('userRole') || 'student';
             document.documentElement.classList.add(`theme-${savedTheme}`);
-            document.body.classList.add(`theme-${savedTheme}`);
             document.documentElement.classList.add(`role-${savedRole}`);
-            document.body.classList.add(`role-${savedRole}`);
         })();
     </script>
     <link rel="stylesheet" href="dashboard-styles.css">
@@ -59,7 +57,7 @@
             </div>
             <div class="date-navigation">
                 <button class="nav-btn" onclick="previousPeriod()">‹</button>
-                <span id="currentPeriod">Semaine du 15 Janvier 2024</span>
+                <span id="currentPeriod"></span>
                 <button class="nav-btn" onclick="nextPeriod()">›</button>
                 <button class="nav-btn today" onclick="goToToday()">Aujourd'hui</button>
             </div>
@@ -152,11 +150,11 @@
         <div id="dailyView" class="schedule-view">
             <div class="daily-schedule">
                 <div class="daily-header">
-                    <h3 id="dailyDate">Lundi 15 Janvier 2024</h3>
+                    <h3 id="dailyDate"></h3>
                     <div class="daily-stats">
-                        <span class="stat">3 cours</span>
-                        <span class="stat">6h30 de cours</span>
-                        <span class="stat">2 salles utilisées</span>
+                        <span class="stat">0 cours</span>
+                        <span class="stat">0h de cours</span>
+                        <span class="stat">0 salle utilisée</span>
                     </div>
                 </div>
                 <div id="dailyTimeline" class="daily-timeline">
@@ -184,7 +182,7 @@
             </button>
             <button class="btn-secondary" onclick="exportSchedule()">
                 <span class="btn-icon"></span>
-                Télécharger en PDF
+                Exporter en PDF
             </button>
             <button class="btn-secondary" onclick="shareSchedule()">
                 <span class="btn-icon"></span>

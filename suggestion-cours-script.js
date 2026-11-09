@@ -6,7 +6,7 @@ let suggestions = [];
 document.addEventListener('DOMContentLoaded', async function () {
     if (typeof authManager !== 'undefined') {
         const userRole = localStorage.getItem('userRole');
-        document.documentElement.className = `role-${userRole}`;
+        if (userRole) document.documentElement.classList.add(`role-${userRole}`);
         setupEventListeners();
         updatePreview();
         await loadInitialData();
@@ -209,9 +209,11 @@ function editSuggestion(id) {
 
     const setVal = (fieldId, value) => {
         const el = document.getElementById(fieldId);
-        if (el && value) el.value = value;
+        if (el && value !== null && value !== undefined) el.value = value;
     };
 
+    setVal('course_name', suggestion.course_name);
+    setVal('course_code', suggestion.course_code);
     setVal('preferredDay', suggestion.preferred_day);
     setVal('preferredTime', suggestion.preferred_time);
     setVal('duration', suggestion.duration_hours);

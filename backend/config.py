@@ -50,19 +50,26 @@ class DevelopmentConfig(Config):
     DEBUG = True
     TESTING = False
     
-    # Base de données PostgreSQL locale
     DB_HOST = os.getenv('DB_HOST', 'localhost')
     DB_PORT = os.getenv('DB_PORT', '5432')
-    DB_NAME = os.getenv('DB_NAME', 'university')  # ← Modifié pour utiliser 'university'
+    DB_NAME = os.getenv('DB_NAME', 'university')
     DB_USER = os.getenv('DB_USER', 'postgres')
     DB_PASSWORD = os.getenv('DB_PASSWORD', 'postgres')
-    
-    SQLALCHEMY_DATABASE_URI = (
-        f'postgresql://{DB_USER}:{quote_plus(DB_PASSWORD)}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
-    )
-    
-    # Logging plus verbeux
-    SQLALCHEMY_ECHO = True
+
+    DATABASE_URL = os.getenv('DATABASE_URL')
+    DB_TYPE = os.getenv('DB_TYPE', 'sqlite').lower()
+    if DATABASE_URL:
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL
+    elif DB_TYPE == 'postgresql':
+        SQLALCHEMY_DATABASE_URI = (
+            f'postgresql://{DB_USER}:{quote_plus(DB_PASSWORD)}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+        )
+    elif DB_TYPE == 'sqlite':
+        SQLALCHEMY_DATABASE_URI = 'sqlite:///campusflow.sqlite3'
+    else:
+        raise ValueError("DB_TYPE doit être 'sqlite' ou 'postgresql'")
+
+    SQLALCHEMY_ECHO = os.getenv('SQL_ECHO', 'False').lower() == 'true'
 
 class ProductionConfig(Config):
     """Configuration pour la production (AWS RDS)"""
@@ -77,7 +84,8 @@ class ProductionConfig(Config):
     DB_USER = os.getenv('RDS_USERNAME', 'postgres')
     DB_PASSWORD = os.getenv('RDS_PASSWORD', 'postgres')  # Valeur par défaut pour éviter l'erreur
     
-    SQLALCHEMY_DATABASE_URI = (
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        'DATABASE_URL',
         f'postgresql://{DB_USER}:{quote_plus(DB_PASSWORD)}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
     )
     
@@ -107,16 +115,7 @@ class TestingConfig(Config):
     TESTING = True
     DEBUG = True
     
-    # Base de données de test
-    DB_HOST = os.getenv('TEST_DB_HOST', 'localhost')
-    DB_PORT = os.getenv('TEST_DB_PORT', '5432')
-    DB_NAME = os.getenv('TEST_DB_NAME', 'gestion_cours_test_db')
-    DB_USER = os.getenv('TEST_DB_USER', 'postgres')
-    DB_PASSWORD = os.getenv('TEST_DB_PASSWORD', 'postgres')
-    
-    SQLALCHEMY_DATABASE_URI = (
-        f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
-    )
+    SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL', 'sqlite:///:memory:')
     
     # Désactiver la protection CSRF pour les tests
     WTF_CSRF_ENABLED = False
@@ -129,8 +128,7 @@ config = {
     'default': DevelopmentConfig
 }
 
-def get_config():
+def get_config(environment=None):
     """Obtenir la configuration selon l'environnement"""
-    env = os.getenv('FLASK_ENV', 'development')
+    env = environment or os.getenv('FLASK_ENV', 'development')
     return config.get(env, config['default'])
-

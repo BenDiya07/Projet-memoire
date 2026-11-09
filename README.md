@@ -7,49 +7,56 @@ Application web de gestion de cours universitaires : planification des emplois d
 | Couche     | Technologie                      |
 |------------|----------------------------------|
 | Backend    | Python Flask, SQLAlchemy, JWT    |
-| Base de données | PostgreSQL                  |
-| Frontend   | HTML / CSS / JavaScript vanilla  |
+| Base de données | SQLite (développement), PostgreSQL (production) |
+| Frontend   | React, TypeScript, Vite (HTML historique conservé pendant la migration) |
 | Visualisation | Chart.js                      |
 
 ## Prérequis
 
 - Python 3.10+
-- PostgreSQL 14+
+- SQLite (inclus avec Python) pour le développement local
+- PostgreSQL 14+ pour une installation ou un déploiement PostgreSQL
 - Node.js (optionnel, pour servir le frontend via Live Server / VS Code)
 
 ## Installation
 
-### 1. Base de données
+### Frontend React (nouvelle interface)
 
-```bash
-cd database
-py setup_database.py
+Le dossier `frontend/` contient la nouvelle interface React + TypeScript. Elle est séparée du frontend HTML historique, qui reste disponible pendant la migration.
+
+```powershell
+cd frontend
+npm install
+npm run dev
 ```
 
-Le script crée la base `university`, applique `schema.sql` et insère les données de test (`init_db.sql`).
+Le serveur Vite transmet les appels `/api` vers Flask sur le port 5001. L’API utilise SQLite en développement local par défaut ; PostgreSQL reste disponible pour la production.
 
-### 2. Backend
+### Backend et base de données
 
-```bash
+```powershell
 cd backend
 py -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-Créer le fichier `.env` à partir de `env.example` puis démarrer :
-
-```bash
+if (-not (Test-Path .env)) { Copy-Item env.example .env }
+py init_sqlite.py
 py run.py
 ```
 
-Le serveur Flask est accessible sur `http://localhost:5001`.
+La base SQLite et ses données de démonstration sont créées dans `backend/instance/campusflow.sqlite3`. L’initialiseur est idempotent : il crée les tables et ajoute les données de démonstration manquantes sans supprimer les données existantes.
 
-### 3. Frontend
+Pour utiliser PostgreSQL en développement, définir `DB_TYPE=postgresql` dans `backend/.env`, renseigner les variables `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` et `DB_PASSWORD`, puis appliquer les scripts SQL existants dans `database/`.
+
+Le serveur Flask est accessible sur `http://localhost:5001` et son état sur `http://localhost:5001/health`.
+
+### Frontend historique
 
 Ouvrir le projet dans VS Code et lancer **Live Server** (port 5500), ou servir le dossier racine avec n'importe quel serveur statique, puis ouvrir `login.html`.
 
 ## Comptes de démonstration
+
+L’inscription depuis l’application crée uniquement des comptes étudiants. Les rôles professeur et administrateur sont attribués par un administrateur ou configurés dans les données de démonstration.
 
 | Rôle       | Email            | Mot de passe |
 |------------|------------------|--------------|

@@ -14,10 +14,15 @@ document.addEventListener('DOMContentLoaded', function () {
 // ============================================
 
 let coursesChart = null;
+let dashboardStats = null;
 
 function initializeCharts() {
     const ctx = document.getElementById('coursesChart');
     if (!ctx) return;
+    if (typeof Chart === 'undefined') {
+        ctx.parentElement.textContent = 'Le graphique est indisponible. Vérifiez votre connexion Internet.';
+        return;
+    }
 
     coursesChart = new Chart(ctx, {
         type: 'bar',
@@ -102,6 +107,7 @@ async function fetchDashboardStats() {
 }
 
 function updateDashboardWidgets(stats) {
+    dashboardStats = stats;
     const widgetValues = document.querySelectorAll('.metric-value');
     const values = [
         stats.total_courses || 0,
@@ -112,6 +118,12 @@ function updateDashboardWidgets(stats) {
     widgetValues.forEach((el, i) => {
         if (values[i] !== undefined) el.textContent = values[i];
     });
+    const conflictLabel = document.querySelector('.metric-change');
+    if (conflictLabel) {
+        const hasConflicts = (stats.total_conflicts || 0) > 0;
+        conflictLabel.textContent = hasConflicts ? 'Nécessite votre attention' : 'Aucun conflit détecté';
+        conflictLabel.classList.toggle('negative', hasConflicts);
+    }
 
     // Mettre a jour les badges de suggestions
     const pendingBadge = document.querySelector('.stat-badge.pending');
@@ -154,10 +166,8 @@ function updateCalendar() {
     calendarGrid.innerHTML = '';
     dayNames.forEach(day => {
         const dayHeader = document.createElement('div');
-        dayHeader.className = 'calendar-day';
+        dayHeader.className = 'calendar-day calendar-weekday';
         dayHeader.textContent = day;
-        dayHeader.style.fontWeight = 'bold';
-        dayHeader.style.background = '#e9ecef';
         calendarGrid.appendChild(dayHeader);
     });
     const firstDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
@@ -169,11 +179,9 @@ function updateCalendar() {
         const dayDate = new Date(startDate);
         dayDate.setDate(startDate.getDate() + i);
         dayElement.textContent = dayDate.getDate();
+        if (dayDate.getMonth() !== calendarDate.getMonth()) dayElement.classList.add('other-month');
         const today = new Date();
         if (dayDate.toDateString() === today.toDateString()) dayElement.classList.add('today');
-        if (dayDate.getMonth() === calendarDate.getMonth() && Math.random() > 0.6) {
-            dayElement.classList.add('has-courses');
-        }
         calendarGrid.appendChild(dayElement);
     }
 }
@@ -193,7 +201,26 @@ function nextMonth() {
 // ============================================
 
 function generateReport() {
-    alert('Generation du rapport en cours...\n\nLe rapport sera disponible dans quelques instants.');
+    if (!dashboardStats) {
+        showNotification('Les statistiques ne sont pas encore disponibles.', 'error');
+        return;
+    }
+    const rows = [
+        ['Indicateur', 'Valeur'],
+        ['Cours', dashboardStats.total_courses || 0],
+        ['Conflits non résolus', dashboardStats.total_conflicts || 0],
+        ['Suggestions en attente', dashboardStats.pending_suggestions || 0],
+        ['Suggestions approuvées', dashboardStats.approved_suggestions || 0],
+        ['Suggestions rejetées', dashboardStats.rejected_suggestions || 0],
+        ['Étudiants inscrits', dashboardStats.total_students || 0]
+    ];
+    const csv = rows.map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\r\n');
+    const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `rapport-cours-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 }
 
 // ============================================
@@ -210,7 +237,6 @@ async function loadSuggestions() {
         if (data.success) {
             suggestions = data.suggestions;
             updateSuggestionsDisplay();
-            await fetchDashboardStats();
         }
     } catch (error) {
         console.error('Erreur chargement suggestions:', error);

@@ -11,9 +11,7 @@
             const savedTheme = localStorage.getItem('theme') || 'light';
             const savedRole = localStorage.getItem('userRole') || 'student';
             document.documentElement.classList.add(`theme-${savedTheme}`);
-            document.body.classList.add(`theme-${savedTheme}`);
             document.documentElement.classList.add(`role-${savedRole}`);
-            document.body.classList.add(`role-${savedRole}`);
         })();
     </script>
     <link rel="stylesheet" href="dashboard-styles.css">
@@ -46,7 +44,7 @@
 
         <!-- Actions principales -->
         <div class="action-bar">
-            <button class="btn-primary" onclick="openModal('addCourseModal')">
+            <button class="btn-primary" data-admin-only onclick="openModal('addCourseModal')">
                 <span class="btn-icon"></span>
                 Ajouter un cours
             </button>
@@ -54,15 +52,15 @@
                 <span class="btn-icon"></span>
                 Suggérer un cours
             </button>
-            <button class="btn-secondary" onclick="openModal('addProfessorModal')">
+            <button class="btn-secondary" data-admin-only onclick="openModal('addProfessorModal')">
                 <span class="btn-icon"></span>
                 Ajouter un professeur
             </button>
-            <button class="btn-secondary" onclick="openModal('addRoomModal')">
+            <button class="btn-secondary" data-admin-only onclick="openModal('addRoomModal')">
                 <span class="btn-icon"></span>
                 Ajouter une salle
             </button>
-            <button class="btn-warning" onclick="checkConflicts()">
+            <button class="btn-warning" data-admin-only onclick="checkConflicts()">
                 <span class="btn-icon"></span>
                 Vérifier les conflits
             </button>
@@ -129,28 +127,28 @@
             <div class="stat-card">
                 <div class="stat-icon"></div>
                 <div class="stat-content">
-                    <div class="stat-number">127</div>
+                    <div class="stat-number" id="totalCourses">0</div>
                     <div class="stat-label">Cours total</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"></div>
                 <div class="stat-content">
-                    <div class="stat-number">15</div>
+                    <div class="stat-number" id="totalProfessors">0</div>
                     <div class="stat-label">Professeurs</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"></div>
                 <div class="stat-content">
-                    <div class="stat-number">25</div>
+                    <div class="stat-number" id="totalRooms">0</div>
                     <div class="stat-label">Salles</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"></div>
                 <div class="stat-content">
-                    <div class="stat-number">450</div>
+                    <div class="stat-number" id="totalStudents">0</div>
                     <div class="stat-label">Étudiants</div>
                 </div>
             </div>

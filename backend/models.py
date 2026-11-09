@@ -1,10 +1,8 @@
-"""
-Modèles SQLAlchemy pour la base de données PostgreSQL
-"""
+"""Modèles SQLAlchemy compatibles avec SQLite et PostgreSQL."""
 
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY
 import uuid
 
 db = SQLAlchemy()
@@ -38,7 +36,7 @@ class User(db.Model):
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
-    uuid = db.Column(UUID(as_uuid=True), unique=True, nullable=False, default=uuid.uuid4)
+    uuid = db.Column(db.Uuid(as_uuid=True), unique=True, nullable=False, default=uuid.uuid4)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(100), nullable=False)
@@ -297,7 +295,7 @@ class CourseSuggestion(db.Model):
     __tablename__ = 'course_suggestions'
     
     id = db.Column(db.Integer, primary_key=True)
-    uuid = db.Column(UUID(as_uuid=True), unique=True, nullable=False, default=uuid.uuid4)
+    uuid = db.Column(db.Uuid(as_uuid=True), unique=True, nullable=False, default=uuid.uuid4)
     professor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     course_name = db.Column(db.String(255), nullable=False)
     course_code = db.Column(db.String(50))
@@ -308,7 +306,9 @@ class CourseSuggestion(db.Model):
     frequency = db.Column(db.String(50))
     room_type = db.Column(db.String(50))
     required_capacity = db.Column(db.Integer)
-    required_equipment = db.Column(ARRAY(db.String))
+    required_equipment = db.Column(
+        ARRAY(db.String).with_variant(db.JSON(), 'sqlite')
+    )
     justification = db.Column(db.Text, nullable=False)
     target_audience = db.Column(db.Text)
     status = db.Column(db.String(50), default='pending')
@@ -445,4 +445,3 @@ class Notification(db.Model):
             'is_read': self.is_read,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
-

@@ -3,9 +3,10 @@ Routes pour la gestion des suggestions de cours
 """
 
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from flask_jwt_extended import jwt_required, get_jwt
 from models import db, CourseSuggestion, User, Course, Notification, AuditLog
 from datetime import datetime
+from auth_utils import get_current_user_id
 
 suggestions_bp = Blueprint('suggestions', __name__, url_prefix='/api/suggestions')
 
@@ -17,7 +18,7 @@ suggestions_bp = Blueprint('suggestions', __name__, url_prefix='/api/suggestions
 def get_suggestions():
     """Obtenir la liste des suggestions"""
     try:
-        user_id = get_jwt_identity()
+        user_id = get_current_user_id()
         claims = get_jwt()
         user_role = claims.get('role')
         
@@ -73,7 +74,7 @@ def get_suggestions():
 def get_suggestion(suggestion_id):
     """Obtenir les détails d'une suggestion"""
     try:
-        user_id = get_jwt_identity()
+        user_id = get_current_user_id()
         claims = get_jwt()
         user_role = claims.get('role')
         
@@ -111,7 +112,7 @@ def get_suggestion(suggestion_id):
 def create_suggestion():
     """Créer une nouvelle suggestion de cours"""
     try:
-        user_id = get_jwt_identity()
+        user_id = get_current_user_id()
         claims = get_jwt()
         user_role = claims.get('role')
         
@@ -211,7 +212,7 @@ def create_suggestion():
 def approve_suggestion(suggestion_id):
     """Approuver une suggestion et créer le cours"""
     try:
-        user_id = get_jwt_identity()
+        user_id = get_current_user_id()
         claims = get_jwt()
         user_role = claims.get('role')
         
@@ -306,7 +307,7 @@ def approve_suggestion(suggestion_id):
 def reject_suggestion(suggestion_id):
     """Rejeter une suggestion"""
     try:
-        user_id = get_jwt_identity()
+        user_id = get_current_user_id()
         claims = get_jwt()
         user_role = claims.get('role')
         
@@ -414,4 +415,3 @@ def get_suggestions_stats():
             'success': False,
             'message': f'Erreur: {str(e)}'
         }), 500
-

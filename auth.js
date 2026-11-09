@@ -95,45 +95,14 @@ class AuthManager {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userData)
             });
-            const data = await response.json();
+            const data = await response.json().catch(() => ({}));
             if (data.success) {
                 return { success: true, user: data.user, message: data.message };
             }
-            return { success: false, message: data.message };
+            return { success: false, message: data.message || 'Impossible de créer le compte.' };
         } catch (error) {
-            return this._registerFallback(userData);
-        }
-    }
-
-    _registerFallback(userData) {
-        try {
-            const existingUsers = this._getRegisteredUsers();
-            if (existingUsers.some(u => u.email === userData.email)) {
-                return { success: false, message: 'Un compte avec cet email existe déjà' };
-            }
-            const newUser = {
-                id: Date.now(),
-                firstName: userData.firstName,
-                lastName: userData.lastName,
-                email: userData.email,
-                role: userData.role,
-                studentId: userData.studentId || null,
-                registeredAt: new Date().toISOString(),
-                isActive: true
-            };
-            existingUsers.push(newUser);
-            localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
-            return { success: true, user: newUser, message: 'Inscription réussie (mode local)' };
-        } catch (error) {
-            return { success: false, message: 'Erreur lors de l\'inscription' };
-        }
-    }
-
-    _getRegisteredUsers() {
-        try {
-            return JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-        } catch (error) {
-            return [];
+            console.error('Erreur API lors de l’inscription:', error);
+            return { success: false, message: 'Le serveur est indisponible. Réessayez plus tard.' };
         }
     }
 
@@ -145,9 +114,9 @@ class AuthManager {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
             });
-            const data = await response.json();
+            const data = await response.json().catch(() => ({}));
 
-            if (data.success) {
+            if (response.ok && data.success) {
                 localStorage.setItem('token', data.access_token);
                 const user = data.user;
                 this.saveUserToStorage(user);
@@ -156,56 +125,11 @@ class AuthManager {
 
                 return { success: true, user, message: data.message };
             }
-            return { success: false, message: data.message };
+            return { success: false, message: data.message || 'Identifiants invalides.' };
         } catch (error) {
-            return this._loginFallback(email, password);
+            console.error('Erreur API lors de la connexion:', error);
+            return { success: false, message: 'Le serveur est indisponible. Vérifiez votre connexion puis réessayez.' };
         }
-    }
-
-    _loginFallback(email, password) {
-        // Utilisateurs enregistrés localement
-        const registeredUsers = this._getRegisteredUsers();
-        const user = registeredUsers.find(u => u.email === email);
-        if (user) {
-            const loginUser = {
-                id: user.id,
-                email: user.email,
-                full_name: `${user.firstName} ${user.lastName}`,
-                first_name: user.firstName,
-                last_name: user.lastName,
-                role: user.role,
-                loginTime: new Date().toISOString()
-            };
-            this.saveUserToStorage(loginUser);
-            localStorage.setItem('userRole', user.role);
-            return { success: true, user: loginUser, message: 'Connexion réussie (mode local)' };
-        }
-
-        // Comptes de démo
-        const credentials = {
-            'admin@univ.fr': { password: 'password123', role: 'admin' },
-            'prof@univ.fr': { password: 'password123', role: 'professor' },
-            'etudiant@univ.fr': { password: 'password123', role: 'student' }
-        };
-        const cred = credentials[email];
-        if (cred && cred.password === password) {
-            const user = {
-                email: email,
-                full_name: this._getUserNameByRole(cred.role),
-                role: cred.role,
-                loginTime: new Date().toISOString()
-            };
-            this.saveUserToStorage(user);
-            localStorage.setItem('userRole', cred.role);
-            return { success: true, user, message: 'Connexion réussie (mode démo)' };
-        }
-
-        return { success: false, message: 'Identifiants invalides' };
-    }
-
-    _getUserNameByRole(role) {
-        const names = { admin: 'Administrateur', professor: 'Professeur', student: 'Étudiant' };
-        return names[role] || 'Utilisateur';
     }
 
     // --- Déconnexion ---

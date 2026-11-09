@@ -3,13 +3,14 @@ Routes pour les statistiques du dashboard
 """
 
 from flask import Blueprint, jsonify
-from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt
 from models import (
     db, Course, CourseSchedule, Room, User, StudentEnrollment,
     CourseSuggestion, Conflict, Notification
 )
 from sqlalchemy import func
 from datetime import datetime, timedelta
+from auth_utils import get_current_user_id
 
 stats_bp = Blueprint('stats', __name__, url_prefix='/api/stats')
 
@@ -94,9 +95,22 @@ def get_room_occupation():
         if total_rooms == 0:
             occupation_rate = 0
         else:
+            today = datetime.now().strftime('%A').lower()
+            day_names = {
+                'monday': 'lundi',
+                'tuesday': 'mardi',
+                'wednesday': 'mercredi',
+                'thursday': 'jeudi',
+                'friday': 'vendredi',
+                'saturday': 'samedi',
+                'sunday': 'dimanche'
+            }
             occupied_today = db.session.query(
                 func.count(func.distinct(CourseSchedule.room_id))
-            ).filter(CourseSchedule.room_id.isnot(None)).scalar() or 0
+            ).filter(
+                CourseSchedule.room_id.isnot(None),
+                func.lower(CourseSchedule.day_of_week) == day_names[today]
+            ).scalar() or 0
             occupation_rate = round((occupied_today / total_rooms) * 100)
 
         return jsonify({
@@ -120,7 +134,7 @@ def get_room_occupation():
 def get_notifications():
     """Notifications récentes de l'utilisateur"""
     try:
-        user_id = get_jwt_identity()
+        user_id = get_current_user_id()
 
         notifications = Notification.query.filter_by(
             user_id=user_id

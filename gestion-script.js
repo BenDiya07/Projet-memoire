@@ -6,17 +6,17 @@ let courses = [];
 document.addEventListener('DOMContentLoaded', async function () {
     if (typeof authManager !== 'undefined') {
         const userRole = localStorage.getItem('userRole');
-        document.documentElement.className = `role-${userRole}`;
+        if (userRole) document.documentElement.classList.add(`role-${userRole}`);
+        hideActionsForProfessors();
         await loadInitialData();
         setupEventListeners();
-        hideActionsForProfessors();
         setupAnimations();
     }
 });
 
 async function loadInitialData() {
     try {
-        await Promise.all([loadCourses(), loadProfessors(), loadRooms()]);
+        await Promise.all([loadCourses(), loadProfessors(), loadRooms(), loadStudents()]);
     } catch (error) {
         console.error('Erreur initialisation:', error);
     }
@@ -26,7 +26,7 @@ function hideActionsForProfessors() {
     const userRole = localStorage.getItem('userRole');
     if (userRole === 'professor') {
         document.body.classList.add('is-professor');
-        document.querySelectorAll('.action-bar .btn-primary').forEach(btn => btn.style.display = 'none');
+        document.querySelectorAll('[data-admin-only]').forEach(button => button.hidden = true);
     }
 }
 
@@ -51,6 +51,7 @@ async function loadCourses() {
         if (data.success) {
             courses = data.courses;
             updateTableWithData(courses);
+            document.getElementById('totalCourses').textContent = data.total;
         }
     } catch (error) {
         console.error('Erreur chargement cours:', error);
@@ -67,6 +68,7 @@ async function loadProfessors() {
                 value: u.id,
                 text: u.full_name || `${u.first_name} ${u.last_name}`
             }));
+            document.getElementById('totalProfessors').textContent = data.users.length;
         }
     } catch (error) {
         console.error('Erreur chargement profs:', error);
@@ -83,9 +85,23 @@ async function loadRooms() {
                 value: r.id,
                 text: `Salle ${r.room_number} (${r.building || 'N/A'})`
             }));
+            document.getElementById('totalRooms').textContent = data.rooms.length;
         }
     } catch (error) {
         console.error('Erreur chargement salles:', error);
+    }
+}
+
+async function loadStudents() {
+    try {
+        const response = await authManager.fetchWithAuth('/auth/users?role=student');
+        if (!response) return;
+        const data = await response.json();
+        if (data.success) {
+            document.getElementById('totalStudents').textContent = data.users.length;
+        }
+    } catch (error) {
+        console.error('Erreur chargement étudiants:', error);
     }
 }
 

@@ -11,9 +11,7 @@
             const savedTheme = localStorage.getItem('theme') || 'light';
             const savedRole = localStorage.getItem('userRole') || 'student';
             document.documentElement.classList.add(`theme-${savedTheme}`);
-            document.body.classList.add(`theme-${savedTheme}`);
             document.documentElement.classList.add(`role-${savedRole}`);
-            document.body.classList.add(`role-${savedRole}`);
         })();
     </script>
     <link rel="stylesheet" href="dashboard-styles.css">
@@ -65,7 +63,7 @@
                 <div class="widget-content">
                     <div class="metric-value">0</div>
                     <div class="metric-label">conflits salles/horaires</div>
-                    <div class="metric-change negative">Necessite attention</div>
+                    <div class="metric-change">Aucun conflit détecté</div>
                 </div>
             </div>
 
@@ -112,8 +110,8 @@
                 <div class="chart-content">
                     <div class="gauge-container">
                         <div class="gauge">
-                            <div class="gauge-fill" style="--percentage: 65%"></div>
-                            <div class="gauge-text">65%</div>
+                            <div class="gauge-fill" style="--percentage: 0%"></div>
+                            <div class="gauge-text">0%</div>
                         </div>
                         <div class="gauge-labels">
                             <span>0%</span>
@@ -167,9 +165,9 @@
             <div class="suggestions-header">
                 <h3> Gestion des suggestions de cours</h3>
                 <div class="suggestions-stats">
-                    <span class="stat-badge pending">3 en attente</span>
-                    <span class="stat-badge approved">5 approuvées</span>
-                    <span class="stat-badge rejected">2 rejetées</span>
+                    <span class="stat-badge pending">0 en attente</span>
+                    <span class="stat-badge approved">0 approuvées</span>
+                    <span class="stat-badge rejected">0 rejetées</span>
                 </div>
             </div>
 
